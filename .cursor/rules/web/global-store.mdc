@@ -1,0 +1,80 @@
+---
+description: Global Zustand store patterns for shared stores
+globs: src/shared/stores/*.ts
+alwaysApply: false
+---
+
+## Global store conventions for shared stores
+
+Follow these patterns when creating or updating global Zustand stores in `src/shared/stores/`.
+Most stores should be consumed via the exported hook (`useXStore`) in React components.
+
+## Shape and separation of concerns
+
+- **Define state (and actions) types**
+  - Keep state and actions small and focused on a single domain concern per store.
+  - Prefer a single `type XState = { ... }` when it stays readable; split into `XState`/`XActions` if it grows.
+
+- **Prefer hook-first stores**
+  - Export the store as a hook named `useXStore`.
+  - Select state/action slices inside components (don’t pass the whole store around).
+
+## Creating the Zustand store
+
+- **Use a single `create` call per store**
+  - Combine state and actions in one `create<...>()((set, get) => ({ ... }))` call.
+  - Keep action implementations close to the state they mutate.
+
+- **Name the hook `useXStore`**
+  - Export the store hook with the `useXStore` naming convention, e.g. `useModalStore`.
+  - Do not export multiple hooks for the same store in the same file.
+
+## Example (typical hook-first store)
+
+```ts
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+type AuthState = {
+  isOnboarded: boolean;
+};
+
+type AuthActions = {
+  setOnboarded: (value: boolean) => void;
+};
+
+export const initialAuthState: AuthState = {
+  isOnboarded: false,
+};
+
+export const useAuthStore = create<AuthState & AuthActions>()(
+  persist(
+    (set) => ({ ...initialAuthState, setOnboarded: (value) => set({ isOnboarded: value }) }),
+    {
+      name: 'store/auth',
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined' ? localStorage : undefined,
+      ),
+    },
+  ),
+);
+```
+
+## Imperative helpers (exceptional)
+
+- **Only add imperative helpers when you truly need them**
+  - This is typically an exception for cases like dialogs/modals or “fire-and-forget” flows triggered outside React (router, non-React modules).
+  - If you add one, keep it as a thin proxy that calls `useXStore.getState()`.
+
+```ts
+export const auth = {
+  setOnboarded: (value: boolean) => useAuthStore.getState().setOnboarded(value),
+};
+```
+
+## React usage guidelines
+
+- **Prefer the hook in components**
+  - In React components, prefer `useXStore` directly for reading state and dispatching actions.
+  - Reserve plain object helpers (e.g. `modal.open(...)`) for non-component modules or simple fire-and-forget calls.
+

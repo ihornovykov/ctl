@@ -8,7 +8,6 @@
   "files": {
     "ignoreUnknown": false,
     "includes": [
-      "**",
       "!**/.next",
       "!**/dist",
       "!**/.turbo",
@@ -45,7 +44,8 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "useExhaustiveDependencies": "info"
+        "useExhaustiveDependencies": "info",
+        "useImageSize": "off"
       },
       "nursery": {
         "useSortedClasses": {
@@ -55,6 +55,9 @@
             "functions": ["clsx", "cva", "cn"]
           }
         }
+      },
+      "performance": {
+        "noBarrelFile": "off"
       },
       "style": {
         "noParameterAssign": "error",

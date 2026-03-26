@@ -1,0 +1,95 @@
+---
+description: Conventions for Drizzle ORM schema, migrations, and queries (packages/db)
+alwaysApply: true
+---
+
+# Drizzle ORM conventions
+
+The database layer lives in **`packages/db`** (`@ctl/db`). Schema files are in `packages/db/src/schema/`, and migrations are managed with **drizzle-kit**.
+
+## Schema conventions
+
+- **Use `snake_case` for column names** in the database. Define columns with explicit names when they differ from camelCase TypeScript field names.
+- **Group schema by domain**: one file per domain under `packages/db/src/schema/` (e.g. `auth.ts`, `users.ts`, `projects.ts`). Re-export everything from `packages/db/src/schema/index.ts`.
+
+```ts
+// ✅ GOOD – explicit column names, timestamps on every table
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+```
+
+```ts
+// ❌ AVOID – implicit column names (defaults to camelCase in DB)
+export const users = pgTable('users', {
+  createdAt: timestamp().defaultNow(),
+})
+```
+
+## Timestamps
+
+- **Every table should have `createdAt` and `updatedAt`** mapped to `created_at` and `updated_at`.
+- Use `.defaultNow()` for `createdAt`; update `updatedAt` in application logic or via a trigger.
+
+## Indexes and unique constraints
+
+- Declare explicit indexes for any column used in `WHERE` or `JOIN` clauses.
+
+```ts
+import { pgTable, text, index, uniqueIndex } from 'drizzle-orm/pg-core'
+
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull(),
+  orgId: text('org_id').notNull(),
+}, (t) => [
+  uniqueIndex('uq_users_email').on(t.email),
+  index('idx_users_org_id').on(t.orgId),
+])
+```
+
+## Relations
+
+- Use Drizzle's `relations()` helper to declare relationships for use with `db.query.*` (Relational API).
+
+```ts
+import { relations } from 'drizzle-orm'
+import { users } from './users'
+import { posts } from './posts'
+
+export const usersRelations = relations(users, ({ many }) => ({
+  posts: many(posts),
+}))
+```
+
+## Querying
+
+- Prefer the **Relational API** (`db.query.<table>.findMany`) for reads with joins; use the **Core API** for complex writes and bulk operations.
+- Always import the `db` client from `@ctl/db`.
+
+```ts
+// ✅ GOOD – Relational API
+import { db } from '@ctl/db'
+
+const user = await db.query.users.findFirst({
+  where: (t, { eq }) => eq(t.id, userId),
+  with: { posts: true },
+})
+
+// ✅ GOOD – Core API for inserts/updates
+import { db, users } from '@ctl/db'
+
+await db.insert(users).values({ id, email }).onConflictDoNothing()
+```
+
+## Migrations
+
+- **Use `drizzle-kit generate` then `drizzle-kit migrate`** for schema changes — never edit migration files by hand.
+- Run migration commands from the repo root via the workspace scripts (e.g. `pnpm db:generate`, `pnpm db:migrate`).
+- Keep the `drizzle.config.ts` in `packages/db/` as the single source of truth for the Drizzle config.
+- **Do not use `drizzle-kit push` in production** — always use versioned migrations.

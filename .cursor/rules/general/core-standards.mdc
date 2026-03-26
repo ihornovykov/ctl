@@ -1,0 +1,54 @@
+---
+description: Code style, naming, and key conventions for the project
+alwaysApply: true
+---
+
+# Core Standards
+
+- Write concise, technical TypeScript with accurate examples.
+- Use functional and declarative patterns; avoid classes.
+- Prefer iteration and modularization over duplication.
+- Use descriptive variable names with auxiliary verbs (e.g. `isLoading`, `hasError`).
+- Avoid comments in code; prefer self-documenting names and structure.
+- Prefer types over interfaces.
+
+## Naming and layout
+
+- Files and folders: **kebab-case** (e.g. `use-user.ts`, `components/user-profile-card`).
+- Favor named exports for components and public API (`export const user = {};`).
+
+## Modules and imports
+
+- `index.ts` files should always be **thin re-export barrels** (`export * from './something'`) – no logic.
+- Prefer importing from **layer barrels** instead of deep paths.
+  - Within `apps/web/src/`:
+    - `@/shared/lib`, `@/shared/ui`, `@/shared/api`, `@/shared/providers`, `@/shared/hooks`, `@/shared/types`, `@/shared/constants`, `@/shared/middlewares`, `@/shared/stores`
+    - `@/features/<domain>`
+    - `@/views/<domain>`
+  - Shared packages (any app or package):
+    - `@ctl/ui/components/<name>` — shadcn/Radix UI components
+    - `@ctl/api` — oRPC `AppRouter` type
+    - `@ctl/env/web` — typed web env vars
+    - `@ctl/env/server` — typed server env vars
+    - `@ctl/db` — Drizzle ORM client and schema
+    - `@ctl/auth` — Better Auth instance
+- When creating a new folder inside these layers, **add or extend a barrel immediately** so callers never import files directly from inside the folder.
+
+## Syntax
+
+- Prefer **arrow functions** over `function` declarations (e.g. `const fn = () => {}` instead of `function fn() {}`).
+- Prefer concise conditionals; avoid unnecessary braces for simple statements.
+
+## TypeScript and Zod
+
+- Always use TypeScript types; avoid `any` and `unknown` without strong justification.
+- Co-locate Zod schemas with the data they validate and derive types from schemas (e.g. `export type User = z.infer<typeof userSchema>`).
+
+## Functions and complexity
+
+- Split complex logic into small, focused functions with single responsibility.
+- Prefer pure functions and composition over large, stateful blocks.
+
+## Control flow
+
+- Use early returns and guard clauses to avoid deep nesting.

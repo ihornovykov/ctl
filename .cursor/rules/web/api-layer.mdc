@@ -1,0 +1,56 @@
+---
+description: oRPC client setup and API conventions for the web app (apps/web)
+globs: apps/web/src/shared/api/**/*
+alwaysApply: false
+---
+
+# Web API layer (oRPC)
+
+The API layer uses **oRPC** (`@orpc/client`, `@orpc/tanstack-query`) connected to the server's `AppRouter` from `@ctl/api`.
+
+## Client setup
+
+Set up the oRPC client and TanStack Query utilities once in `apps/web/src/shared/api/`:
+
+```ts
+// src/shared/api/orpc.ts
+import { createORPCClient } from '@orpc/client'
+import { RPCLink } from '@orpc/client'
+import { createTanstackQueryUtils } from '@orpc/tanstack-query'
+import type { AppRouter } from '@ctl/api'
+import { env } from '@ctl/env/web'
+
+const link = new RPCLink({
+  url: `${env.VITE_SERVER_URL}/rpc`,
+})
+
+export const client = createORPCClient<AppRouter>(link)
+export const orpc = createTanstackQueryUtils(client)
+```
+
+Re-export from the barrel so call sites import from `@/shared/api`:
+
+```ts
+// src/shared/api/index.ts
+export { client, orpc } from './orpc'
+```
+
+## Consuming queries and mutations
+
+- **Never call `fetch` directly** — always go through the typed `orpc` or `client`.
+- Prefer `.queryOptions` / `.mutationOptions` with TanStack Query hooks.
+- Use `orpc.<router>.<procedure>.key()` for cache invalidations.
+
+```ts
+import { useQuery } from '@tanstack/react-query'
+import { orpc } from '@/shared/api'
+
+const { data } = useQuery(orpc.user.getById.queryOptions({ input: { id } }))
+```
+
+See the **oRPC + TanStack Query** rule for the full query, infinite query, mutation, and key invalidation patterns.
+
+## Error handling
+
+- Use `isDefinedError` from `@orpc/client` to distinguish typed domain errors from network/unexpected errors.
+- Avoid catching errors in data-fetching hooks to show toasts; let React Query surface errors to the UI layer instead.

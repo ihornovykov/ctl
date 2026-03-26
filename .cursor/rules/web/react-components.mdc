@@ -1,0 +1,204 @@
+---
+description: Conventions for structuring React/React Native TSX components (props, styling helpers, handlers, and component splitting)
+globs: **/*.tsx
+alwaysApply: false
+---
+
+## Props
+
+- **Extract props into a named type**
+  - Define a dedicated props type or interface before the component.
+  - Prefer `type` aliases for simple component props.
+  - Prefer the short name `Props` for the component’s props type (unless you have multiple props types in the same file, in which case use more specific names).
+
+```tsx
+// ✅ GOOD
+type Props = {
+  resource: Resource;
+  onBookmarkPress?: () => void;
+  className?: string;
+};
+
+export const ResourceCard = ({ resource, onBookmarkPress, className }: Props) => {
+  // ...
+};
+
+// ❌ AVOID
+export const ResourceCard = ({
+  resource,
+  onBookmarkPress,
+  className,
+}: {
+  resource: Resource;
+  onBookmarkPress?: () => void;
+  className?: string;
+}) => {
+  // ...
+};
+```
+
+## Styling helpers
+
+- **Use `cn` instead of template strings for class names**
+  - Combine classes with `cn(...)` rather than string concatenation or inline template strings.
+
+```tsx
+// ✅ GOOD
+export const ResourceCard = ({ className }: { className?: string }) => {
+  return (
+    <section className={cn('bg-white rounded-xxs px-4 py-3', className)}>
+      <h2 className="text-sm font-medium">Resource title</h2>
+      <p className="text-xs text-muted-foreground">Short description of the resource.</p>
+    </section>
+  );
+};
+
+// ❌ AVOID
+export const ResourceCard = ({ className }: { className?: string }) => {
+  return (
+    <section className={`bg-white rounded-xxs px-4 py-3 ${className}`}>
+      <h2 className="text-sm font-medium">Resource title</h2>
+      <p className="text-xs text-muted-foreground">Short description of the resource.</p>
+    </section>
+  );
+};
+```
+
+- **Use `cva` for complex, conditional style mappings**
+  - When variants or many conditional class branches appear, extract them using `cva` (or a shared style helper) instead of inlining conditionals.
+
+```tsx
+// ✅ GOOD
+const cardStyles = cva('rounded-xxs px-4 py-3', {
+  variants: {
+    variant: {
+      default: 'bg-white',
+      muted: 'bg-v2-grey-light',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
+type CardVariant = VariantProps<typeof cardStyles>;
+
+type Props = {
+  variant?: CardVariant['variant'];
+  className?: string;
+};
+
+export const ResourceCard = ({ variant, className }: Props) => {
+  return (
+    <article className={cardStyles({ variant, className })}>
+      <header className="mb-2 flex items-center justify-between">
+        <h2 className="text-sm font-medium">Resource title</h2>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+          {variant === 'muted' ? 'Draft' : 'Published'}
+        </span>
+      </header>
+      <p className="text-xs text-muted-foreground">Short description of the resource.</p>
+    </article>
+  );
+};
+
+// ❌ AVOID – complex inline ternaries in `className`
+export const ResourceCard = ({ muted }: { muted?: boolean }) => {
+  return (
+    <div
+      className={`rounded-xxs px-4 py-3 ${muted ? 'bg-v2-grey-light' : 'bg-white'} ${additionalConditionalBranches}`}
+    />
+  );
+};
+```
+
+## Component size and splitting
+
+- **Split large UI components into smaller pieces**
+  - When a component grows large (multiple responsibilities, many nested views, or mixed concerns), extract focused subcomponents.
+  - Keep the main component responsible for layout/composition and pass data/handlers down.
+  - For simple loading states (e.g. `ResourceCard`), prefer defining the skeleton variant **in the same file** (e.g. `ResourceCardSkeleton`) instead of creating a separate `resource-card-skeleton.tsx` file.
+
+```tsx
+// ✅ GOOD – `ResourceCard` composes smaller pieces
+type Props = {
+  resource: Resource;
+  onSavePress?: () => void;
+};
+
+export const ResourceCard = ({ resource, onSavePress }: Props) => {
+  return (
+    <CardContainer>
+      <ResourceBanner />
+      <ResourceHeader resource={resource} />
+      <ResourceActions resource={resource} onSavePress={onSavePress} />
+    </CardContainer>
+  );
+};
+
+export const ResourceCardSkeleton = () => {
+  return (
+    <article className="rounded-xxs border border-border bg-background px-4 py-3">
+      <div className="mb-2 h-4 w-32 animate-pulse rounded-sm bg-muted" />
+      <div className="h-3 w-full animate-pulse rounded-sm bg-muted" />
+    </article>
+  );
+};
+
+// ❌ AVOID – single component containing all markup, logic, and layout with no extraction
+export const ResourceCard = ({ resource, onSavePress }: Props) => {
+  return (
+    <div>
+      {/* banner, titles, metadata, actions, skeletons, etc. all inline here */}
+    </div>
+  );
+};
+```
+
+## Handler naming
+
+- **Name event handlers with `on*` prefixes**
+  - Use `onSomething` for functions passed as event handlers or props (e.g. `onPress`, `onSubmit`, `onReadPress`).
+  - Align internal handler names with the prop they implement when possible.
+
+```tsx
+// ✅ GOOD
+type Props = {
+  onSavePress?: () => void;
+};
+
+export const ResourceCard = ({ onSavePress }: Props) => {
+  const onSavePressHandler = () => {
+    onSavePress?.();
+  };
+
+  return (
+    <footer className="mt-3 flex justify-end">
+      <button type="button" className="btn btn-primary" onPress={onSavePressHandler}>
+        Save resource
+      </button>
+    </footer>
+  );
+};
+
+// Also acceptable when directly wiring props
+<button type="button" className="btn btn-primary" onPress={onSavePress}>
+  Save resource
+</button>;
+
+// ❌ AVOID – generic or non-`on*` handler names
+const save = () => {
+  // ...
+};
+
+<button type="button" className="btn btn-primary" onPress={save}>
+  Save resource
+</button>;
+```
+
+# State and Data Fetching
+
+- Use **Zustand** for client state management.
+- Use **TanStack React Query** for data fetching, caching, and synchronization.
+- Use **nuqs** for URL search parameter state.
+- Minimize `useEffect` and `setState`; prefer derived state and memoization.

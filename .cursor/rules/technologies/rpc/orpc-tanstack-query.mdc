@@ -1,0 +1,209 @@
+---
+description: Patterns for integrating oRPC clients with TanStack Query
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+## oRPC + TanStack Query Integration
+
+- **Goal**: Use oRPC clients with TanStack Query in a type-safe, cache-friendly way (queries, infinite queries, streaming, mutations).
+- **When to use**: Any time you wire an oRPC client to `@tanstack/react-query` (or other TanStack Query bindings).
+
+### Setup
+
+- **Install**:
+
+```bash
+npm install @orpc/tanstack-query @tanstack/react-query
+```
+
+- **Create utilities** with `createTanstackQueryUtils` once per oRPC client:
+
+```ts
+import { createTanstackQueryUtils } from '@orpc/tanstack-query'
+import { client } from './orpc-client'
+
+export const orpc = createTanstackQueryUtils(client, {
+  // Optional: avoid key collisions across multiple clients
+  path: ['orpc'],
+})
+```
+
+### Queries
+
+- **Standard query**: always use `.queryOptions` and pass it directly to TanStack Query hooks.
+
+```ts
+import { useQuery } from '@tanstack/react-query'
+import { orpc } from './orpc'
+
+export function PlanetDetails(props: { id: number }) {
+  const query = useQuery(
+    orpc.planet.find.queryOptions({
+      input: { id: props.id },
+      context: { cache: true },
+      staleTime: 60_000,
+    }),
+  )
+
+  if (query.isLoading) return <p>Loading…</p>
+  if (query.isError) return <p>Something went wrong</p>
+
+  return <p>{query.data.name}</p>
+}
+```
+
+- **Streamed / live queries**: use `.streamedOptions` / `.liveOptions` when the oRPC procedure uses Event Iterator.
+
+```ts
+const query = useQuery(
+  orpc.streamed.experimental_streamedOptions({
+    input: { id: 123 },
+    context: { cache: true },
+    queryFnOptions: {
+      refetchMode: 'reset',
+      maxChunks: 3,
+    },
+    retry: true,
+  }),
+)
+```
+
+### Infinite queries
+
+- Use `.infiniteOptions` and make `input` a function that takes `pageParam` and returns the oRPC input.
+
+```ts
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { orpc } from './orpc'
+
+const query = useInfiniteQuery(
+  orpc.planet.list.infiniteOptions({
+    input: (pageParam: number | undefined) => ({
+      limit: 10,
+      offset: pageParam,
+    }),
+    context: { cache: true },
+    initialPageParam: undefined,
+    getNextPageParam: lastPage => lastPage.nextPageParam,
+  }),
+)
+```
+
+### Mutations
+
+- Always create options via `.mutationOptions` so types and keys stay aligned with the procedure.
+
+```ts
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { orpc } from './orpc'
+
+const queryClient = useQueryClient()
+
+const mutation = useMutation(
+  orpc.planet.create.mutationOptions({
+    context: { cache: true },
+    onSuccess: () => {
+      // Prefer invalidating by key helpers
+      queryClient.invalidateQueries({
+        queryKey: orpc.planet.key(),
+      })
+    },
+  }),
+)
+
+mutation.mutate({ name: 'Earth' })
+```
+
+### Keys and cache updates
+
+- Use oRPC key helpers instead of hand-building query keys.
+- Prefer:
+  - `.key()` for partial matches (invalidate a group of queries).
+  - `.queryKey()`, `.infiniteKey()`, `.streamedKey()` for full matches.
+
+```ts
+// Invalidate all planet queries
+queryClient.invalidateQueries({
+  queryKey: orpc.planet.key(),
+})
+
+// Invalidate only regular planet queries (exclude infinite)
+queryClient.invalidateQueries({
+  queryKey: orpc.planet.key({ type: 'query' }),
+})
+
+// Update a specific planet by id
+queryClient.setQueryData(
+  orpc.planet.find.queryKey({ input: { id: 123 } }),
+  old => (old ? { ...old, name: 'Earth' } : old),
+)
+```
+
+### Conditional queries with `skipToken`
+
+- Use `skipToken` as a type-safe alternative to `enabled`/`disabled` flags when the input itself should be omitted.
+
+```ts
+import { skipToken } from '@orpc/tanstack-query'
+
+const query = useQuery(
+  orpc.planet.list.queryOptions({
+    input: search ? { search } : skipToken,
+  }),
+)
+```
+
+### Error handling
+
+- Use `isDefinedError` to distinguish typed oRPC errors from unexpected failures.
+
+```ts
+import { useMutation } from '@tanstack/react-query'
+import { isDefinedError } from '@orpc/client'
+
+const mutation = useMutation(
+  orpc.planet.create.mutationOptions({
+    onError: error => {
+      if (isDefinedError(error)) {
+        // Handle domain error (e.g., validation, not found)
+        console.error('Domain error', error.code, error.message)
+      } else {
+        // Fallback for network / unknown errors
+        console.error('Unexpected error', error)
+      }
+    },
+  }),
+)
+```
+
+### Operation context and HTTP method
+
+- When using `RPCLink`, use `TanstackQueryOperationContext` to derive HTTP method from operation type (query vs mutation).
+
+```ts
+import {
+  TANSTACK_QUERY_OPERATION_CONTEXT_SYMBOL,
+  TanstackQueryOperationContext,
+} from '@orpc/tanstack-query'
+import { RPCLink } from '@orpc/client'
+
+interface ClientContext extends TanstackQueryOperationContext {}
+
+const GET_OPERATION_TYPE = new Set(['query', 'streamed', 'live', 'infinite'])
+
+const link = new RPCLink<ClientContext>({
+  url: 'http://localhost:3000/rpc',
+  method: ({ context }) => {
+    const operationType =
+      context[TANSTACK_QUERY_OPERATION_CONTEXT_SYMBOL]?.type
+
+    if (operationType && GET_OPERATION_TYPE.has(operationType)) {
+      return 'GET'
+    }
+
+    return 'POST'
+  },
+})
+```
+

@@ -1,0 +1,86 @@
+---
+description: Conventions for oRPC routers and procedures in packages/api
+globs: packages/api/src/**
+alwaysApply: false
+---
+
+## Typing inputs and outputs
+
+- **Always define named types for inputs and outputs** rather than relying on inline inference.
+  - Use clear names like `UpdateUserInput`, `UpdateUserOutput`.
+
+```ts
+// ✅ GOOD
+export type UpdateUserInput = z.infer<typeof updateUserSchema>
+export type UpdateUserOutput = UserOutput
+
+export const updateUser = protectedProcedure
+  .input(updateUserSchema)
+  .output(updateUserOutputSchema)
+  .handler(async ({ ctx, input }): Promise<UpdateUserOutput> => {
+    // ...
+  })
+```
+
+```ts
+// ❌ AVOID (unnamed inline types)
+export const updateUser = protectedProcedure
+  .input(updateUserSchema)
+  .handler(async ({ ctx, input }) => {
+    return { /* untyped object */ }
+  })
+```
+
+## Route naming
+
+- **Routers**: use resource-based names (`user`, `auth`, `organization`) and group them under `packages/api/src/routers/`.
+- **Procedures**: use verbs that describe the action (`getUserById`, `getUsers`, `updateUser`, `deleteUser`).
+
+```ts
+// ✅ GOOD
+export const userRouter = {
+  getUserById: protectedProcedure.handler(/* ... */),
+  getUsers: protectedProcedure.handler(/* ... */),
+  updateUser: protectedProcedure.handler(/* ... */),
+}
+```
+
+## Error handling
+
+- **Always throw `ORPCError`** instead of `new Error` in routers.
+
+```ts
+// ✅ GOOD
+import { ORPCError } from '@orpc/server'
+
+throw new ORPCError('NOT_FOUND', { message: 'User not found' })
+```
+
+```ts
+// ❌ AVOID
+throw new Error('User not found')
+```
+
+## Package structure (`packages/api/src/`)
+
+Organize routers by domain:
+
+```
+packages/api/src/
+  index.ts          ← oRPC builder, base procedures (public / protected)
+  context.ts        ← request context type
+  routers/
+    index.ts        ← AppRouter (root router, composes all domain routers)
+    user/
+      index.ts      ← userRouter
+      validation.ts ← Zod schemas and Input/Output type aliases
+      utils.ts      ← pure helpers (DB → API shape mapping, etc.)
+    auth/
+      index.ts
+      validation.ts
+```
+
+- **`routers/index.ts`** exports `AppRouter` — the source of truth for client-side types.
+- **`validation.ts`**: Zod schemas and typed input/output aliases — no handler logic.
+- **`utils.ts`**: pure helper functions used by the router (e.g. mapping DB rows to API shapes).
+- Add each domain router to the root router in `routers/index.ts`.

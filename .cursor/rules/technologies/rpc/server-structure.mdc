@@ -1,0 +1,50 @@
+---
+description: Server folder structure and conventions for apps/server and packages/api
+globs: apps/server/src/**, packages/api/src/**
+alwaysApply: false
+---
+
+# Server structure
+
+The server is split across two locations in the monorepo:
+
+- **`packages/api/`** — oRPC routers, context, and the shared `AppRouter` type. See the **oRPC** rule for conventions.
+- **`apps/server/`** — Fastify HTTP server that mounts the router and all middleware.
+
+## `apps/server/src/`
+
+A single entry file (`src/index.ts`) composes all server concerns:
+
+- Registers Fastify plugins (`@fastify/cors`, etc.).
+- Mounts the oRPC handler at `/rpc` using the `AppRouter` from `@ctl/api`.
+- Mounts Better Auth at `/api/auth` using the instance from `@ctl/auth`.
+- Optionally exposes an OpenAPI reference at `/api-reference`.
+
+```ts
+// apps/server/src/index.ts
+import { router } from '@ctl/api'
+import { auth } from '@ctl/auth'
+
+fastify.route({ url: '/rpc/*', handler: createORPCHandler(router) })
+fastify.route({ url: '/api/auth/*', handler: auth.handler })
+```
+
+## `packages/api/src/`
+
+See the **oRPC** rule for the full package structure. Key exports:
+
+- `AppRouter` — the root router type consumed by the web client.
+- `router` — the root router instance mounted by `apps/server`.
+- `publicProcedure`, `protectedProcedure` — base procedures used by domain routers.
+
+## Adding new routes
+
+1. Create a new domain folder under `packages/api/src/routers/<domain>/`.
+2. Add `index.ts` (sub-router), `validation.ts` (schemas), and `utils.ts` (helpers) as needed.
+3. Register the new sub-router in `packages/api/src/routers/index.ts` so it becomes part of `AppRouter`.
+4. No changes needed in `apps/server` — it mounts the root router automatically.
+
+## Environment
+
+- `apps/server` reads env from `@ctl/env/server`.
+- Never import `@ctl/env/web` in the server.
