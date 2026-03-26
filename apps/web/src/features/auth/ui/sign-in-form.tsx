@@ -1,131 +1,198 @@
 import { Button } from "@ctl/ui/components/button";
+import { Card, CardContent } from "@ctl/ui/components/card";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+	FieldSeparator,
+} from "@ctl/ui/components/field";
 import { Input } from "@ctl/ui/components/input";
-import { Label } from "@ctl/ui/components/label";
-import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
+import { cn } from "@ctl/ui/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Code2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod";
+import { z } from "zod";
 
 import { authClient } from "@/shared/lib";
-import { Loader } from "@/shared/ui";
+import { PasswordInput } from "@/shared/ui";
+import { GoogleIcon } from "./google-icon";
 
-export const SignInForm = ({
-	onSwitchToSignUp,
-}: {
-	onSwitchToSignUp: () => void;
-}) => {
-	const navigate = useNavigate({ from: "/" });
-	const { isPending } = authClient.useSession();
+const signInSchema = z.object({
+	email: z.string().email("Please enter a valid email address"),
+	password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
-	const form = useForm({
+type SignInValues = z.infer<typeof signInSchema>;
+
+type Props = {
+	className?: string;
+};
+
+export const SignInForm = ({ className }: Props) => {
+	const navigate = useNavigate();
+	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors, isSubmitting },
+	} = useForm<SignInValues>({
+		resolver: zodResolver(signInSchema),
 		defaultValues: { email: "", password: "" },
-		onSubmit: async ({ value }) => {
-			await authClient.signIn.email(
-				{ email: value.email, password: value.password },
-				{
-					onSuccess: () => {
-						navigate({ to: "/dashboard" });
-						toast.success("Sign in successful");
-					},
-					onError: (error) => {
-						toast.error(error.error.message || error.error.statusText);
-					},
-				}
-			);
-		},
-		validators: {
-			onSubmit: z.object({
-				email: z.email("Invalid email address"),
-				password: z.string().min(8, "Password must be at least 8 characters"),
-			}),
-		},
 	});
 
-	if (isPending) {
-		return <Loader />;
-	}
+	const onSubmit = async (values: SignInValues) => {
+		await authClient.signIn.email(
+			{ email: values.email, password: values.password },
+			{
+				onSuccess: () => {
+					navigate({ to: "/dashboard" });
+					toast.success("Welcome back!");
+				},
+				onError: (error) => {
+					toast.error(error.error.message || "Failed to sign in");
+				},
+			}
+		);
+	};
+
+	const onGoogleSignIn = async () => {
+		setIsGoogleLoading(true);
+		await authClient.signIn.social({
+			provider: "google",
+			callbackURL: `${window.location.origin}/dashboard`,
+		});
+	};
 
 	return (
-		<div className="mx-auto mt-10 w-full max-w-md p-6">
-			<h1 className="mb-6 text-center font-bold text-3xl">Welcome Back</h1>
-
-			<form
-				className="space-y-4"
-				onSubmit={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					form.handleSubmit();
-				}}
-			>
-				<form.Field name="email">
-					{(field) => (
-						<div className="space-y-2">
-							<Label htmlFor={field.name}>Email</Label>
-							<Input
-								id={field.name}
-								name={field.name}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								type="email"
-								value={field.state.value}
-							/>
-							{field.state.meta.errors.map((error) => (
-								<p className="text-red-500" key={error?.message}>
-									{error?.message}
+		<div className={cn("flex flex-col gap-6", className)}>
+			<Card className="overflow-hidden p-0">
+				<CardContent className="grid p-0 md:grid-cols-2">
+					<form className="p-6 md:p-8" onSubmit={handleSubmit(onSubmit)}>
+						<FieldGroup>
+							<div className="flex flex-col items-center gap-2 text-center">
+								<h1 className="font-bold text-2xl">Welcome back</h1>
+								<p className="text-balance text-muted-foreground">
+									Sign in to your CodeLearn account
 								</p>
-							))}
+							</div>
+
+							<Field data-invalid={!!errors.email || undefined}>
+								<FieldLabel htmlFor="email">Email</FieldLabel>
+								<Input
+									aria-invalid={!!errors.email}
+									id="email"
+									placeholder="m@example.com"
+									type="email"
+									{...register("email")}
+								/>
+								<FieldError>{errors.email?.message}</FieldError>
+							</Field>
+
+							<Field data-invalid={!!errors.password || undefined}>
+								<div className="flex items-center">
+									<FieldLabel htmlFor="password">Password</FieldLabel>
+									<span className="ml-auto cursor-pointer text-sm underline-offset-2 hover:underline">
+										Forgot your password?
+									</span>
+								</div>
+								<PasswordInput
+									aria-invalid={!!errors.password}
+									id="password"
+									{...register("password")}
+								/>
+								<FieldError>{errors.password?.message}</FieldError>
+							</Field>
+
+							<Field>
+								<Button
+									className="h-11 w-full"
+									loading={isSubmitting}
+									type="submit"
+								>
+									Sign In
+								</Button>
+							</Field>
+
+							<FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+								Or continue with
+							</FieldSeparator>
+
+							<Field>
+								<Button
+									className="h-11 w-full"
+									icon={<GoogleIcon />}
+									loading={isGoogleLoading}
+									onClick={onGoogleSignIn}
+									type="button"
+									variant="outline"
+								>
+									Continue with Google
+								</Button>
+							</Field>
+
+							<FieldDescription className="text-center">
+								Don&apos;t have an account?{" "}
+								<Link
+									className="underline underline-offset-4"
+									to="/auth/sign-up"
+								>
+									Sign up
+								</Link>
+							</FieldDescription>
+						</FieldGroup>
+					</form>
+
+					{/* Right panel: image always visible with overlay on top */}
+					<div className="relative hidden md:block">
+						{/* Background image */}
+						<img
+							alt="Coding workspace"
+							className="absolute inset-0 size-full object-cover"
+							src="/images/coding.jpg"
+						/>
+
+						{/* Gradient scrim for text legibility */}
+						<div className="absolute inset-0 bg-black/60" />
+
+						{/* Glow orbs — positioned inward so blur isn't clipped by Card's overflow-hidden */}
+						<div className="absolute top-8 right-8 size-56 rounded-full bg-primary/60 blur-3xl" />
+						<div className="absolute bottom-8 left-8 size-48 rounded-full bg-primary/45 blur-3xl" />
+
+						{/* Brand mark */}
+						<div className="absolute inset-0 flex flex-col items-center justify-center">
+							<div className="relative z-10 flex flex-col items-center gap-5 text-center">
+								<div className="flex size-14 items-center justify-center rounded-2xl border border-primary/40 bg-primary/25 backdrop-blur-sm">
+									<Code2 className="size-7 text-primary-foreground" />
+								</div>
+								<div>
+									<p className="font-bold text-white text-xl">CodeLearn</p>
+									<p className="mt-2 max-w-[180px] text-balance text-sm text-zinc-300">
+										Master programming with AI‑powered learning
+									</p>
+								</div>
+							</div>
 						</div>
-					)}
-				</form.Field>
+					</div>
+				</CardContent>
+			</Card>
 
-				<form.Field name="password">
-					{(field) => (
-						<div className="space-y-2">
-							<Label htmlFor={field.name}>Password</Label>
-							<Input
-								id={field.name}
-								name={field.name}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								type="password"
-								value={field.state.value}
-							/>
-							{field.state.meta.errors.map((error) => (
-								<p className="text-red-500" key={error?.message}>
-									{error?.message}
-								</p>
-							))}
-						</div>
-					)}
-				</form.Field>
-
-				<form.Subscribe
-					selector={(state) => ({
-						canSubmit: state.canSubmit,
-						isSubmitting: state.isSubmitting,
-					})}
-				>
-					{({ canSubmit, isSubmitting }) => (
-						<Button
-							className="w-full"
-							disabled={!canSubmit || isSubmitting}
-							type="submit"
-						>
-							{isSubmitting ? "Submitting..." : "Sign In"}
-						</Button>
-					)}
-				</form.Subscribe>
-			</form>
-
-			<div className="mt-4 text-center">
-				<Button
-					className="text-indigo-600 hover:text-indigo-800"
-					onClick={onSwitchToSignUp}
-					variant="link"
-				>
-					Need an account? Sign Up
-				</Button>
-			</div>
+			<FieldDescription className="px-6 text-center">
+				By clicking continue, you agree to our{" "}
+				<span className="cursor-pointer underline underline-offset-4 hover:text-primary">
+					Terms of Service
+				</span>{" "}
+				and{" "}
+				<span className="cursor-pointer underline underline-offset-4 hover:text-primary">
+					Privacy Policy
+				</span>
+				.
+			</FieldDescription>
 		</div>
 	);
 };

@@ -6,6 +6,7 @@ import {
 	HeadContent,
 	Outlet,
 	Scripts,
+	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
@@ -37,6 +38,9 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument() {
+	const { location } = useRouterState();
+	const isAuthRoute = location.pathname.startsWith("/auth");
+
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
@@ -47,7 +51,7 @@ function RootDocument() {
 			<body>
 				<ThemeProvider>
 					<div className="flex min-h-svh flex-col">
-						<Header />
+						{!isAuthRoute && <Header />}
 						<Outlet />
 					</div>
 					<Toaster richColors />
