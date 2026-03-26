@@ -1,0 +1,36 @@
+{
+  "name": "ctl",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @ctl/db db:push",
+    "db:studio": "turbo -F @ctl/db db:studio",
+    "db:generate": "turbo -F @ctl/db db:generate",
+    "db:migrate": "turbo -F @ctl/db db:migrate",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
+  },
+  "dependencies": {
+    "@ctl/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.7",
+    "@ctl/config": "workspace:*",
+    "@types/node": "catalog:",
+    "turbo": "^2.8.12",
+    "typescript": "^5",
+    "ultracite": "7.3.2"
+  },
+  "packageManager": "pnpm@10.18.2"
+}

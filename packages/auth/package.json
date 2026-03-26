@@ -1,0 +1,24 @@
+{
+  "name": "@ctl/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@ctl/db": "workspace:*",
+    "@ctl/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@ctl/config": "workspace:*",
+    "typescript": "^5"
+  }
+}
