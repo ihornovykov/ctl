@@ -12,7 +12,6 @@ import { Input } from "@ctl/ui/components/input";
 import { cn } from "@ctl/ui/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Code2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -20,7 +19,8 @@ import { z } from "zod";
 
 import { authClient } from "@/shared/lib";
 import { PasswordInput } from "@/shared/ui";
-import { GoogleIcon } from "./google-icon";
+import { AuthBrandPanel } from "./auth-brand-panel";
+import { GoogleOauthButton } from "./google-oauth-button";
 
 const signInSchema = z.object({
 	email: z.string().email("Please enter a valid email address"),
@@ -65,7 +65,7 @@ export const SignInForm = ({ className }: Props) => {
 		setIsGoogleLoading(true);
 		await authClient.signIn.social({
 			provider: "google",
-			callbackURL: `${window.location.origin}/dashboard`,
+			callbackURL: "/dashboard",
 		});
 	};
 
@@ -124,16 +124,10 @@ export const SignInForm = ({ className }: Props) => {
 							</FieldSeparator>
 
 							<Field>
-								<Button
-									className="h-11 w-full"
-									icon={<GoogleIcon />}
+								<GoogleOauthButton
 									loading={isGoogleLoading}
-									onClick={onGoogleSignIn}
-									type="button"
-									variant="outline"
-								>
-									Continue with Google
-								</Button>
+									onGoogleSignIn={onGoogleSignIn}
+								/>
 							</Field>
 
 							<FieldDescription className="text-center">
@@ -148,37 +142,7 @@ export const SignInForm = ({ className }: Props) => {
 						</FieldGroup>
 					</form>
 
-					{/* Right panel: image always visible with overlay on top */}
-					<div className="relative hidden md:block">
-						{/* Background image */}
-						<img
-							alt="Coding workspace"
-							className="absolute inset-0 size-full object-cover"
-							src="/images/coding.jpg"
-						/>
-
-						{/* Gradient scrim for text legibility */}
-						<div className="absolute inset-0 bg-black/60" />
-
-						{/* Glow orbs — positioned inward so blur isn't clipped by Card's overflow-hidden */}
-						<div className="absolute top-8 right-8 size-56 rounded-full bg-primary/60 blur-3xl" />
-						<div className="absolute bottom-8 left-8 size-48 rounded-full bg-primary/45 blur-3xl" />
-
-						{/* Brand mark */}
-						<div className="absolute inset-0 flex flex-col items-center justify-center">
-							<div className="relative z-10 flex flex-col items-center gap-5 text-center">
-								<div className="flex size-14 items-center justify-center rounded-2xl border border-primary/40 bg-primary/25 backdrop-blur-sm">
-									<Code2 className="size-7 text-primary-foreground" />
-								</div>
-								<div>
-									<p className="font-bold text-white text-xl">CodeLearn</p>
-									<p className="mt-2 max-w-[180px] text-balance text-sm text-zinc-300">
-										Master programming with AI‑powered learning
-									</p>
-								</div>
-							</div>
-						</div>
-					</div>
+					<AuthBrandPanel />
 				</CardContent>
 			</Card>
 
