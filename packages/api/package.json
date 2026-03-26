@@ -11,6 +11,7 @@
   },
   "scripts": {},
   "dependencies": {
+    "@ai-sdk/google": "^3.0.53",
     "@ctl/auth": "workspace:*",
     "@ctl/db": "workspace:*",
     "@ctl/env": "workspace:*",
@@ -18,7 +19,9 @@
     "@orpc/openapi": "catalog:",
     "@orpc/server": "catalog:",
     "@orpc/zod": "catalog:",
+    "ai": "^6.0.138",
     "better-auth": "catalog:",
+    "dockerode": "^4.0.10",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
     "nanoid": "^5.1.7",
@@ -26,6 +29,7 @@
   },
   "devDependencies": {
     "@ctl/config": "workspace:*",
+    "@types/dockerode": "^4.0.1",
     "typescript": "^5"
   }
 }

@@ -1,4 +1,5 @@
 import { createContext } from "@ctl/api/context";
+import { warmDockerImages } from "@ctl/api/lib/code-runner";
 import { appRouter } from "@ctl/api/routers/index";
 import { auth } from "@ctl/auth";
 import { env } from "@ctl/env/server";
@@ -115,4 +116,7 @@ fastify.listen({ port: 3000 }, (err) => {
 		process.exit(1);
 	}
 	console.log("Server running on port 3000");
+	warmDockerImages().catch((e) =>
+		fastify.log.warn({ err: e }, "Docker image warm-up failed (non-fatal)")
+	);
 });

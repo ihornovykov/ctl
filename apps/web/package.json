@@ -13,6 +13,7 @@
     "@ctl/env": "workspace:*",
     "@ctl/ui": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
+    "@monaco-editor/react": "^4.7.0",
     "@orpc/client": "catalog:",
     "@orpc/server": "catalog:",
     "@orpc/tanstack-query": "^1.13.6",
@@ -36,7 +37,8 @@
     "sonner": "catalog:",
     "tailwindcss": "catalog:",
     "vite-tsconfig-paths": "^5.1.4",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@ctl/config": "workspace:*",

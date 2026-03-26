@@ -1,12 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { LessonView } from "@/views/courses";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/courses/$slug/lessons/$lessonSlug")({
-	component: LessonPage,
+	component: () => <Outlet />,
 });
-
-function LessonPage() {
-	const { slug, lessonSlug } = Route.useParams();
-	return <LessonView courseSlug={slug} lessonSlug={lessonSlug} />;
-}

@@ -1,7 +1,14 @@
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 
-import { course, language, lesson } from "./schema";
+import {
+	course,
+	gradingCriteria,
+	language,
+	lesson,
+	task,
+	taskTest,
+} from "./schema";
 
 const db = drizzle(process.env.DATABASE_URL!, { logger: false });
 
@@ -302,6 +309,7 @@ counter(); // 1
 counter(); // 2
 \`\`\``,
 		sortOrder: 3,
+		hasTask: true,
 	},
 	{
 		id: "lesson-js-04",
@@ -340,12 +348,14 @@ nums.reduce((acc, n) => acc + n, 0); // 15
 const [first, second, ...rest] = nums;
 \`\`\``,
 		sortOrder: 4,
+		hasTask: true,
 	},
 	{
 		id: "lesson-js-05",
 		courseId: "course-javascript-fundamentals",
 		title: "Async JavaScript",
 		slug: "async-javascript",
+		hasTask: true,
 		description:
 			"From callbacks to Promises to async/await — understand the event loop and write non-blocking code.",
 		content: `# Async JavaScript
@@ -1437,6 +1447,280 @@ auto doubled = even | std::views::transform([](int n){ return n * 2; });
 	},
 ] as const;
 
+const tasks = [
+	{
+		id: "task-js-03",
+		lessonId: "lesson-js-03",
+		languageId: "javascript",
+		description: `## Make a Counter Factory
+
+Write a function \`makeCounter(start)\` that accepts an optional starting number (defaulting to \`0\`) and returns an object with two methods:
+
+- \`increment()\` — increases the counter by 1 and returns the new value
+- \`getCount()\` — returns the current value without changing it
+
+This exercise practices closures: the returned object must capture and mutate the \`start\` variable from the outer scope.
+
+### Examples
+
+\`\`\`js
+const counter = makeCounter();
+counter.increment(); // 1
+counter.increment(); // 2
+counter.getCount();  // 2
+
+const counter2 = makeCounter(10);
+counter2.increment(); // 11
+counter2.getCount();  // 11
+\`\`\`
+
+### Requirements
+
+1. \`makeCounter\` must accept an optional \`start\` parameter (default \`0\`)
+2. Each call to \`increment()\` must increase the count by exactly 1
+3. \`getCount()\` must return the current count without side effects
+4. Multiple counters must be independent of each other`,
+		starterCode: `function makeCounter(start = 0) {
+  // Your code here
+  // Return an object with increment() and getCount() methods
+}
+
+// Example usage:
+// const counter = makeCounter();
+// counter.increment(); // 1
+// counter.increment(); // 2
+// counter.getCount();  // 2
+`,
+		solutionCode: `function makeCounter(start = 0) {
+  let count = start;
+  return {
+    increment() {
+      count += 1;
+      return count;
+    },
+    getCount() {
+      return count;
+    },
+  };
+}
+`,
+	},
+	{
+		id: "task-js-04",
+		lessonId: "lesson-js-04",
+		languageId: "javascript",
+		description: `## Transform a User List
+
+Write a function \`transformUsers(users)\` that accepts an array of user objects and returns a new array where each user has:
+
+- Only \`id\` and \`name\` fields (all other fields removed)
+- \`name\` converted to uppercase
+- Users with \`active: false\` filtered out
+
+### Examples
+
+\`\`\`js
+const users = [
+  { id: 1, name: "alice", email: "alice@example.com", active: true },
+  { id: 2, name: "bob", email: "bob@example.com", active: false },
+  { id: 3, name: "carol", email: "carol@example.com", active: true },
+];
+
+transformUsers(users);
+// [
+//   { id: 1, name: "ALICE" },
+//   { id: 3, name: "CAROL" },
+// ]
+\`\`\`
+
+### Requirements
+
+1. Filter out users where \`active\` is \`false\`
+2. Return objects with only \`id\` and \`name\`
+3. Convert \`name\` to uppercase
+4. Preserve the original array order
+5. Do not mutate the original array`,
+		starterCode: `function transformUsers(users) {
+  // Your code here
+  // Filter inactive users, keep only id and name, uppercase the name
+}
+
+// Example usage:
+// const users = [
+//   { id: 1, name: "alice", active: true },
+//   { id: 2, name: "bob", active: false },
+// ];
+// transformUsers(users); // [{ id: 1, name: "ALICE" }]
+`,
+		solutionCode: `function transformUsers(users) {
+  return users
+    .filter(user => user.active)
+    .map(({ id, name }) => ({ id, name: name.toUpperCase() }));
+}
+`,
+	},
+];
+
+const taskTests = [
+	// Tests for task-js-03 (makeCounter)
+	{
+		id: "test-js-03-01",
+		taskId: "task-js-03",
+		title: "increment() returns 1 on first call from default start",
+		testCode: `const c = makeCounter();
+const result = c.increment();
+if (result !== 1) throw new Error("Expected 1, got " + result);
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-js-03-02",
+		taskId: "task-js-03",
+		title: "getCount() returns current value without incrementing",
+		testCode: `const c = makeCounter();
+c.increment();
+c.increment();
+const count = c.getCount();
+if (count !== 2) throw new Error("Expected 2, got " + count);
+const countAgain = c.getCount();
+if (countAgain !== 2) throw new Error("getCount should not change the value, expected 2, got " + countAgain);
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 2,
+	},
+	{
+		id: "test-js-03-03",
+		taskId: "task-js-03",
+		title: "makeCounter(start) respects the start parameter",
+		testCode: `const c = makeCounter(10);
+const result = c.increment();
+if (result !== 11) throw new Error("Expected 11, got " + result);
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 3,
+	},
+	{
+		id: "test-js-03-04",
+		taskId: "task-js-03",
+		title: "Multiple counters are independent",
+		testCode: `const c1 = makeCounter();
+const c2 = makeCounter(100);
+c1.increment();
+c1.increment();
+c2.increment();
+if (c1.getCount() !== 2) throw new Error("c1 should be 2, got " + c1.getCount());
+if (c2.getCount() !== 101) throw new Error("c2 should be 101, got " + c2.getCount());
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 4,
+	},
+	// Tests for task-js-04 (transformUsers)
+	{
+		id: "test-js-04-01",
+		taskId: "task-js-04",
+		title: "filters out inactive users",
+		testCode: `const users = [
+  { id: 1, name: "alice", email: "a@b.com", active: true },
+  { id: 2, name: "bob", email: "b@b.com", active: false },
+];
+const result = transformUsers(users);
+if (result.length !== 1) throw new Error("Expected 1 user, got " + result.length);
+if (result[0].id !== 1) throw new Error("Expected user with id 1");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-js-04-02",
+		taskId: "task-js-04",
+		title: "converts name to uppercase",
+		testCode: `const users = [{ id: 1, name: "alice", active: true }];
+const result = transformUsers(users);
+if (result[0].name !== "ALICE") throw new Error("Expected ALICE, got " + result[0].name);
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 2,
+	},
+	{
+		id: "test-js-04-03",
+		taskId: "task-js-04",
+		title: "returns only id and name fields",
+		testCode: `const users = [{ id: 1, name: "alice", email: "a@b.com", role: "admin", active: true }];
+const result = transformUsers(users);
+const keys = Object.keys(result[0]).sort();
+if (JSON.stringify(keys) !== JSON.stringify(["id", "name"])) {
+  throw new Error("Expected only id and name, got: " + keys.join(", "));
+}
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 3,
+	},
+	{
+		id: "test-js-04-04",
+		taskId: "task-js-04",
+		title: "does not mutate the original array",
+		testCode: `const users = [{ id: 1, name: "alice", active: true }];
+const original = JSON.stringify(users);
+transformUsers(users);
+if (JSON.stringify(users) !== original) throw new Error("Original array was mutated");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 4,
+	},
+];
+
+const gradingCriteriaData = [
+	// Criteria for task-js-03 (makeCounter)
+	{
+		id: "criteria-js-03-01",
+		taskId: "task-js-03",
+		name: "Correctness",
+		description:
+			"The function correctly implements the counter behavior: increment returns incrementing values and getCount returns the current value without side effects.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-js-03-02",
+		taskId: "task-js-03",
+		name: "Closure Usage",
+		description:
+			"The solution uses closures properly — the inner state is encapsulated and not exposed globally.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-js-03-03",
+		taskId: "task-js-03",
+		name: "Code Readability",
+		description:
+			"Code is clean, uses descriptive variable names, and follows modern JavaScript conventions.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+	// Criteria for task-js-04 (transformUsers)
+	{
+		id: "criteria-js-04-01",
+		taskId: "task-js-04",
+		name: "Correctness",
+		description:
+			"The function correctly filters, maps, and transforms the user array per the requirements.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-js-04-02",
+		taskId: "task-js-04",
+		name: "Functional Style",
+		description:
+			"Solution uses array methods (filter, map) in a functional, non-mutating style rather than imperative loops.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-js-04-03",
+		taskId: "task-js-04",
+		name: "Code Readability",
+		description:
+			"Code is concise, uses destructuring where appropriate, and is easy to understand.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+];
+
 async function seed() {
 	console.log("Seeding languages...");
 	await db
@@ -1484,10 +1768,56 @@ async function seed() {
 				slug: lesson.slug,
 				description: lesson.description,
 				content: lesson.content,
+				hasTask: lesson.hasTask,
 				sortOrder: lesson.sortOrder,
 			},
 		});
 	console.log(`  Inserted/updated ${lessons.length} lessons`);
+
+	console.log("Seeding tasks...");
+	await db
+		.insert(task)
+		.values(tasks)
+		.onConflictDoUpdate({
+			target: task.id,
+			set: {
+				description: task.description,
+				starterCode: task.starterCode,
+				solutionCode: task.solutionCode,
+			},
+		});
+	console.log(`  Inserted/updated ${tasks.length} tasks`);
+
+	console.log("Seeding task tests...");
+	await db
+		.insert(taskTest)
+		.values(taskTests)
+		.onConflictDoUpdate({
+			target: taskTest.id,
+			set: {
+				title: taskTest.title,
+				testCode: taskTest.testCode,
+				sortOrder: taskTest.sortOrder,
+			},
+		});
+	console.log(`  Inserted/updated ${taskTests.length} task tests`);
+
+	console.log("Seeding grading criteria...");
+	await db
+		.insert(gradingCriteria)
+		.values(gradingCriteriaData)
+		.onConflictDoUpdate({
+			target: gradingCriteria.id,
+			set: {
+				name: gradingCriteria.name,
+				description: gradingCriteria.description,
+				maxScore: gradingCriteria.maxScore,
+				sortOrder: gradingCriteria.sortOrder,
+			},
+		});
+	console.log(
+		`  Inserted/updated ${gradingCriteriaData.length} grading criteria`
+	);
 
 	console.log("Done.");
 	process.exit(0);

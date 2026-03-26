@@ -18,6 +18,8 @@ import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as CoursesSlugIndexRouteImport } from './routes/courses/$slug/index'
 import { Route as CoursesSlugLessonsLessonSlugRouteImport } from './routes/courses/$slug/lessons.$lessonSlug'
+import { Route as CoursesSlugLessonsLessonSlugIndexRouteImport } from './routes/courses/$slug/lessons.$lessonSlug/index'
+import { Route as CoursesSlugLessonsLessonSlugTaskRouteImport } from './routes/courses/$slug/lessons.$lessonSlug.task'
 
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
@@ -65,6 +67,18 @@ const CoursesSlugLessonsLessonSlugRoute =
     path: '/lessons/$lessonSlug',
     getParentRoute: () => CoursesSlugRoute,
   } as any)
+const CoursesSlugLessonsLessonSlugIndexRoute =
+  CoursesSlugLessonsLessonSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => CoursesSlugLessonsLessonSlugRoute,
+  } as any)
+const CoursesSlugLessonsLessonSlugTaskRoute =
+  CoursesSlugLessonsLessonSlugTaskRouteImport.update({
+    id: '/task',
+    path: '/task',
+    getParentRoute: () => CoursesSlugLessonsLessonSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,7 +89,9 @@ export interface FileRoutesByFullPath {
   '/courses/$slug': typeof CoursesSlugRouteWithChildren
   '/courses/': typeof CoursesIndexRoute
   '/courses/$slug/': typeof CoursesSlugIndexRoute
-  '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugRoute
+  '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugRouteWithChildren
+  '/courses/$slug/lessons/$lessonSlug/task': typeof CoursesSlugLessonsLessonSlugTaskRoute
+  '/courses/$slug/lessons/$lessonSlug/': typeof CoursesSlugLessonsLessonSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,7 +101,8 @@ export interface FileRoutesByTo {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/courses': typeof CoursesIndexRoute
   '/courses/$slug': typeof CoursesSlugIndexRoute
-  '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugRoute
+  '/courses/$slug/lessons/$lessonSlug/task': typeof CoursesSlugLessonsLessonSlugTaskRoute
+  '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,7 +114,9 @@ export interface FileRoutesById {
   '/courses/$slug': typeof CoursesSlugRouteWithChildren
   '/courses/': typeof CoursesIndexRoute
   '/courses/$slug/': typeof CoursesSlugIndexRoute
-  '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugRoute
+  '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugRouteWithChildren
+  '/courses/$slug/lessons/$lessonSlug/task': typeof CoursesSlugLessonsLessonSlugTaskRoute
+  '/courses/$slug/lessons/$lessonSlug/': typeof CoursesSlugLessonsLessonSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +130,8 @@ export interface FileRouteTypes {
     | '/courses/'
     | '/courses/$slug/'
     | '/courses/$slug/lessons/$lessonSlug'
+    | '/courses/$slug/lessons/$lessonSlug/task'
+    | '/courses/$slug/lessons/$lessonSlug/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -120,6 +141,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/courses'
     | '/courses/$slug'
+    | '/courses/$slug/lessons/$lessonSlug/task'
     | '/courses/$slug/lessons/$lessonSlug'
   id:
     | '__root__'
@@ -132,6 +154,8 @@ export interface FileRouteTypes {
     | '/courses/'
     | '/courses/$slug/'
     | '/courses/$slug/lessons/$lessonSlug'
+    | '/courses/$slug/lessons/$lessonSlug/task'
+    | '/courses/$slug/lessons/$lessonSlug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -207,6 +231,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesSlugLessonsLessonSlugRouteImport
       parentRoute: typeof CoursesSlugRoute
     }
+    '/courses/$slug/lessons/$lessonSlug/': {
+      id: '/courses/$slug/lessons/$lessonSlug/'
+      path: '/'
+      fullPath: '/courses/$slug/lessons/$lessonSlug/'
+      preLoaderRoute: typeof CoursesSlugLessonsLessonSlugIndexRouteImport
+      parentRoute: typeof CoursesSlugLessonsLessonSlugRoute
+    }
+    '/courses/$slug/lessons/$lessonSlug/task': {
+      id: '/courses/$slug/lessons/$lessonSlug/task'
+      path: '/task'
+      fullPath: '/courses/$slug/lessons/$lessonSlug/task'
+      preLoaderRoute: typeof CoursesSlugLessonsLessonSlugTaskRouteImport
+      parentRoute: typeof CoursesSlugLessonsLessonSlugRoute
+    }
   }
 }
 
@@ -222,14 +260,33 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface CoursesSlugLessonsLessonSlugRouteChildren {
+  CoursesSlugLessonsLessonSlugTaskRoute: typeof CoursesSlugLessonsLessonSlugTaskRoute
+  CoursesSlugLessonsLessonSlugIndexRoute: typeof CoursesSlugLessonsLessonSlugIndexRoute
+}
+
+const CoursesSlugLessonsLessonSlugRouteChildren: CoursesSlugLessonsLessonSlugRouteChildren =
+  {
+    CoursesSlugLessonsLessonSlugTaskRoute:
+      CoursesSlugLessonsLessonSlugTaskRoute,
+    CoursesSlugLessonsLessonSlugIndexRoute:
+      CoursesSlugLessonsLessonSlugIndexRoute,
+  }
+
+const CoursesSlugLessonsLessonSlugRouteWithChildren =
+  CoursesSlugLessonsLessonSlugRoute._addFileChildren(
+    CoursesSlugLessonsLessonSlugRouteChildren,
+  )
+
 interface CoursesSlugRouteChildren {
   CoursesSlugIndexRoute: typeof CoursesSlugIndexRoute
-  CoursesSlugLessonsLessonSlugRoute: typeof CoursesSlugLessonsLessonSlugRoute
+  CoursesSlugLessonsLessonSlugRoute: typeof CoursesSlugLessonsLessonSlugRouteWithChildren
 }
 
 const CoursesSlugRouteChildren: CoursesSlugRouteChildren = {
   CoursesSlugIndexRoute: CoursesSlugIndexRoute,
-  CoursesSlugLessonsLessonSlugRoute: CoursesSlugLessonsLessonSlugRoute,
+  CoursesSlugLessonsLessonSlugRoute:
+    CoursesSlugLessonsLessonSlugRouteWithChildren,
 }
 
 const CoursesSlugRouteWithChildren = CoursesSlugRoute._addFileChildren(

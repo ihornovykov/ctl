@@ -204,7 +204,7 @@ const TaskCallout = ({
 			<Link
 				className={cn(buttonVariants({ size: "lg" }), "shrink-0 gap-2")}
 				params={{ slug: courseSlug, lessonSlug }}
-				to="/courses/$slug/lessons/$lessonSlug"
+				to="/courses/$slug/lessons/$lessonSlug/task"
 			>
 				Start Task
 				<ChevronRight className="size-4" />
