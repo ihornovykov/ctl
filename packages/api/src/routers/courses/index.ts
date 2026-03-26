@@ -12,6 +12,9 @@ import {
 	courseSchema,
 	courseSlugInput,
 	enrollInput,
+	type LessonDetail,
+	lessonDetailSchema,
+	lessonSlugInput,
 } from "./validation";
 
 export const coursesRouter = {
@@ -164,6 +167,150 @@ export const coursesRouter = {
 				.onConflictDoNothing();
 
 			return { success: true };
+		}),
+
+	getLessonBySlug: protectedProcedure
+		.input(lessonSlugInput)
+		.output(lessonDetailSchema)
+		.handler(async ({ input, context }): Promise<LessonDetail> => {
+			const { courseSlug, lessonSlug } = input;
+			const userId = context.session.user.id;
+
+			const courseRow = await db.query.course.findFirst({
+				where: eq(course.slug, courseSlug),
+				with: {
+					language: true,
+					lessons: {
+						orderBy: (l, { asc }) => asc(l.sortOrder),
+					},
+				},
+			});
+
+			if (!courseRow) {
+				throw new ORPCError("NOT_FOUND", { message: "Course not found" });
+			}
+
+			const enrollmentRow = await db.query.enrollment.findFirst({
+				where: and(
+					eq(enrollment.userId, userId),
+					eq(enrollment.courseId, courseRow.id)
+				),
+				columns: { id: true },
+			});
+
+			if (!enrollmentRow) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "You must enroll in this course first",
+				});
+			}
+
+			const lessonIds = courseRow.lessons.map((l) => l.id);
+			const progressRows =
+				lessonIds.length > 0
+					? await db.query.lessonProgress.findMany({
+							where: and(
+								eq(lessonProgress.userId, userId),
+								inArray(lessonProgress.lessonId, lessonIds)
+							),
+							columns: { lessonId: true },
+						})
+					: [];
+			const completedLessonIds = new Set(progressRows.map((p) => p.lessonId));
+
+			const lessonIndex = courseRow.lessons.findIndex(
+				(l) => l.slug === lessonSlug
+			);
+
+			if (lessonIndex === -1) {
+				throw new ORPCError("NOT_FOUND", { message: "Lesson not found" });
+			}
+
+			const lessonRow = courseRow.lessons[lessonIndex];
+			if (!lessonRow) {
+				throw new ORPCError("NOT_FOUND", { message: "Lesson not found" });
+			}
+
+			let isAccessible = false;
+			if (lessonIndex === 0) {
+				isAccessible = true;
+			} else {
+				const prevLesson = courseRow.lessons[lessonIndex - 1];
+				isAccessible = prevLesson
+					? completedLessonIds.has(prevLesson.id)
+					: false;
+			}
+
+			if (!isAccessible) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "Complete the previous lesson first",
+				});
+			}
+
+			const isCompleted = completedLessonIds.has(lessonRow.id);
+
+			const prevLessonEntry =
+				lessonIndex > 0 ? courseRow.lessons[lessonIndex - 1] : undefined;
+			const nextLessonEntry =
+				lessonIndex < courseRow.lessons.length - 1
+					? courseRow.lessons[lessonIndex + 1]
+					: undefined;
+
+			const prevLessonData = prevLessonEntry
+				? { slug: prevLessonEntry.slug, title: prevLessonEntry.title }
+				: null;
+
+			const nextLessonData = nextLessonEntry
+				? { slug: nextLessonEntry.slug, title: nextLessonEntry.title }
+				: null;
+
+			const mappedLessons = courseRow.lessons.map((l, index) => {
+				const lCompleted = completedLessonIds.has(l.id);
+				let lAccessible = false;
+				if (index === 0) {
+					lAccessible = true;
+				} else {
+					const prev = courseRow.lessons[index - 1];
+					lAccessible = prev ? completedLessonIds.has(prev.id) : false;
+				}
+				return {
+					id: l.id,
+					title: l.title,
+					slug: l.slug,
+					description: l.description,
+					sortOrder: l.sortOrder,
+					isCompleted: lCompleted,
+					isAccessible: lAccessible,
+				};
+			});
+
+			return {
+				id: lessonRow.id,
+				title: lessonRow.title,
+				slug: lessonRow.slug,
+				description: lessonRow.description,
+				content: lessonRow.content,
+				sortOrder: lessonRow.sortOrder,
+				hasTask: lessonRow.hasTask,
+				isCompleted,
+				isAccessible,
+				course: {
+					id: courseRow.id,
+					title: courseRow.title,
+					slug: courseRow.slug,
+					totalLessons: courseRow.lessons.length,
+					completedLessons: completedLessonIds.size,
+					language: {
+						id: courseRow.language.id,
+						name: courseRow.language.name,
+						icon: courseRow.language.icon,
+						fileExtension: courseRow.language.fileExtension,
+						monacoLanguage: courseRow.language.monacoLanguage,
+					},
+					lessons: mappedLessons,
+				},
+				prevLesson: prevLessonData,
+				nextLesson: nextLessonData,
+			};
 		}),
 
 	completeLesson: protectedProcedure

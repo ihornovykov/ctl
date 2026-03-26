@@ -1,10 +1,8 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 import { getUser } from "@/shared/lib";
-import { CourseDetailView } from "@/views/courses";
 
 export const Route = createFileRoute("/courses/$slug")({
-	component: CourseDetailPage,
 	beforeLoad: async () => {
 		const session = await getUser();
 		if (!session) {
@@ -12,9 +10,5 @@ export const Route = createFileRoute("/courses/$slug")({
 		}
 		return { session };
 	},
+	component: () => <Outlet />,
 });
-
-function CourseDetailPage() {
-	const { slug } = Route.useParams();
-	return <CourseDetailView slug={slug} />;
-}

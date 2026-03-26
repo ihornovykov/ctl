@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { client, orpc } from "@/shared/api";
 
-export const useCompleteLesson = (slug: string) => {
+export const useCompleteLesson = (courseSlug: string, lessonSlug?: string) => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
@@ -10,8 +10,15 @@ export const useCompleteLesson = (slug: string) => {
 			client.courses.completeLesson({ lessonId }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: orpc.courses.getBySlug.key({ input: { slug } }),
+				queryKey: orpc.courses.getBySlug.key({ input: { slug: courseSlug } }),
 			});
+			if (lessonSlug) {
+				queryClient.invalidateQueries({
+					queryKey: orpc.courses.getLessonBySlug.key({
+						input: { courseSlug, lessonSlug },
+					}),
+				});
+			}
 		},
 	});
 };

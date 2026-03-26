@@ -47,6 +47,7 @@ export const lesson = pgTable(
 		slug: text("slug").notNull(),
 		description: text("description").notNull(),
 		content: text("content").notNull(),
+		hasTask: boolean("has_task").notNull().default(false),
 		sortOrder: integer("sort_order").notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")

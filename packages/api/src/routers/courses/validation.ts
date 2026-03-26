@@ -50,6 +50,38 @@ export const courseSlugInput = z.object({ slug: z.string() });
 export const enrollInput = z.object({ courseId: z.string() });
 export const completeLessonInput = z.object({ lessonId: z.string() });
 
+export const lessonSlugInput = z.object({
+	courseSlug: z.string(),
+	lessonSlug: z.string(),
+});
+
+export const lessonNavSchema = z
+	.object({ slug: z.string(), title: z.string() })
+	.nullable();
+
+export const lessonDetailSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	slug: z.string(),
+	description: z.string(),
+	content: z.string(),
+	sortOrder: z.number(),
+	hasTask: z.boolean(),
+	isCompleted: z.boolean(),
+	isAccessible: z.boolean(),
+	course: z.object({
+		id: z.string(),
+		title: z.string(),
+		slug: z.string(),
+		totalLessons: z.number(),
+		completedLessons: z.number(),
+		language: languageSchema,
+		lessons: z.array(lessonSchema),
+	}),
+	prevLesson: lessonNavSchema,
+	nextLesson: lessonNavSchema,
+});
+
 export type CourseListItem = z.infer<typeof courseSchema>;
 export type CourseListOutput = CourseListItem[];
 export type LessonItem = z.infer<typeof lessonSchema>;
@@ -57,3 +89,6 @@ export type CourseDetail = z.infer<typeof courseDetailSchema>;
 export type CourseSlugInput = z.infer<typeof courseSlugInput>;
 export type EnrollInput = z.infer<typeof enrollInput>;
 export type CompleteLessonInput = z.infer<typeof completeLessonInput>;
+export type LessonSlugInput = z.infer<typeof lessonSlugInput>;
+export type LessonNav = z.infer<typeof lessonNavSchema>;
+export type LessonDetail = z.infer<typeof lessonDetailSchema>;

@@ -2,7 +2,6 @@ import type { CourseDetail } from "@ctl/api/routers/courses/validation";
 import { Skeleton } from "@ctl/ui/components/skeleton";
 import { BookOpen, Lock } from "lucide-react";
 
-import { useCompleteLesson } from "../hooks/use-complete-lesson";
 import { LessonItem } from "./lesson-item";
 
 type Props = {
@@ -30,12 +29,6 @@ export const LessonListSkeleton = () => (
 );
 
 export const LessonList = ({ course }: Props) => {
-	const {
-		mutate: completeLesson,
-		isPending,
-		variables,
-	} = useCompleteLesson(course.slug);
-
 	if (course.lessons.length === 0) {
 		return (
 			<div className="flex flex-col items-center gap-3 py-20 text-center">
@@ -76,13 +69,12 @@ export const LessonList = ({ course }: Props) => {
 			<div>
 				{course.lessons.map((lesson, index) => (
 					<LessonItem
+						courseSlug={course.slug}
 						index={index}
-						isCompleting={isPending && variables === lesson.id}
 						isEnrolled={course.isEnrolled}
 						isLast={index === course.lessons.length - 1}
 						key={lesson.id}
 						lesson={lesson}
-						onComplete={(id) => completeLesson(id)}
 					/>
 				))}
 			</div>

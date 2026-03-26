@@ -1,0 +1,1 @@
+ALTER TABLE "lesson" ADD COLUMN "has_task" boolean DEFAULT false NOT NULL;
