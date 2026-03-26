@@ -15,6 +15,13 @@
       "when": 1774558720073,
       "tag": "0001_fine_donald_blake",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774559711202,
+      "tag": "0002_rainy_betty_ross",
+      "breakpoints": true
     }
   ]
 }

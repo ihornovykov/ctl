@@ -1,6 +1,7 @@
 import type { CourseListItem } from "@ctl/api/routers/courses/validation";
 import { Badge } from "@ctl/ui/components/badge";
 import { cn } from "@ctl/ui/lib/utils";
+import { Link } from "@tanstack/react-router";
 import { ChevronRight, Clock } from "lucide-react";
 
 const DIFFICULTY_LABEL: Record<string, string> = {
@@ -76,7 +77,7 @@ export const CourseCard = ({ course, index = 0 }: Props) => {
 	const accent = LANG_ACCENT[course.language.id] ?? DEFAULT_ACCENT;
 
 	return (
-		<div
+		<Link
 			className={cn(
 				"group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/60",
 				"bg-card transition-all duration-300",
@@ -85,7 +86,9 @@ export const CourseCard = ({ course, index = 0 }: Props) => {
 				accent.ring,
 				"fade-in slide-in-from-bottom-4 animate-in fill-mode-backwards duration-500"
 			)}
+			params={{ slug: course.slug }}
 			style={{ animationDelay: `${index * 80}ms` }}
+			to="/courses/$slug"
 		>
 			{/* Gradient header zone */}
 			<div
@@ -145,6 +148,6 @@ export const CourseCard = ({ course, index = 0 }: Props) => {
 					</span>
 				</div>
 			</div>
-		</div>
+		</Link>
 	);
 };
