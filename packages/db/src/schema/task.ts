@@ -5,6 +5,7 @@ import {
 	integer,
 	jsonb,
 	pgTable,
+	real,
 	text,
 	timestamp,
 	unique,
@@ -91,8 +92,8 @@ export const submission = pgTable(
 			.notNull()
 			.references(() => language.id),
 		testsPassed: boolean("tests_passed").notNull().default(false),
-		score: integer("score").notNull().default(0),
-		maxScore: integer("max_score").notNull().default(0),
+		score: real("score").notNull().default(0),
+		maxScore: real("max_score").notNull().default(0),
 		aiFeedback: jsonb("ai_feedback"),
 		submittedAt: timestamp("submitted_at").defaultNow().notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),

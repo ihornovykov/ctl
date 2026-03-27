@@ -1,11 +1,16 @@
-import type { LessonDetail } from "@ctl/api/routers/courses/validation";
+import type {
+	CourseDetail,
+	LessonItem,
+} from "@ctl/api/routers/courses/validation";
 import { ScrollArea } from "@ctl/ui/components/scroll-area";
+import { Skeleton } from "@ctl/ui/components/skeleton";
 import { cn } from "@ctl/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, CheckCircle2, Lock, Play } from "lucide-react";
 
 type Props = {
-	lesson: LessonDetail;
+	course: CourseDetail | null;
+	lessonSlug: string;
 };
 
 const LessonNavItem = ({
@@ -13,7 +18,7 @@ const LessonNavItem = ({
 	courseSlug,
 	isActive,
 }: {
-	item: LessonDetail["course"]["lessons"][number];
+	item: LessonItem;
 	courseSlug: string;
 	isActive: boolean;
 }) => {
@@ -81,8 +86,33 @@ const LessonNavItem = ({
 	);
 };
 
-export const LessonSidebar = ({ lesson }: Props) => {
-	const { course } = lesson;
+const SidebarSkeleton = () => (
+	<aside className="flex h-full w-80 shrink-0 flex-col border-border/40 border-r bg-background">
+		<div className="flex flex-col gap-3 border-border/50 border-b p-5">
+			<Skeleton className="h-4 w-24" />
+			<div className="flex items-center gap-3">
+				<Skeleton className="size-10 rounded-xl" />
+				<div className="flex flex-col gap-1.5">
+					<Skeleton className="h-4 w-40" />
+					<Skeleton className="h-3 w-28" />
+				</div>
+			</div>
+			<Skeleton className="h-2 w-full rounded-full" />
+		</div>
+		<div className="flex flex-col gap-1 p-3">
+			{Array.from({ length: 8 }).map((_, i) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+				<Skeleton className="h-12 w-full rounded-xl" key={i} />
+			))}
+		</div>
+	</aside>
+);
+
+export const LessonSidebar = ({ course, lessonSlug }: Props) => {
+	if (!course) {
+		return <SidebarSkeleton />;
+	}
+
 	const progressPct =
 		course.totalLessons > 0
 			? Math.round((course.completedLessons / course.totalLessons) * 100)
@@ -135,7 +165,7 @@ export const LessonSidebar = ({ lesson }: Props) => {
 					{course.lessons.map((item) => (
 						<LessonNavItem
 							courseSlug={course.slug}
-							isActive={item.slug === lesson.slug}
+							isActive={item.slug === lessonSlug}
 							item={item}
 							key={item.id}
 						/>

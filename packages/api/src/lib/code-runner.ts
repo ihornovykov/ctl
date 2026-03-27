@@ -16,7 +16,12 @@ type TestResult = {
 
 const LANGUAGE_CONFIGS: Record<
 	string,
-	{ image: string; ext: string; runCmd: (file: string) => string[] }
+	{
+		image: string;
+		ext: string;
+		runCmd: (file: string) => string[];
+		memoryBytes?: number;
+	}
 > = {
 	javascript: {
 		image: "node:20-alpine",
@@ -24,7 +29,7 @@ const LANGUAGE_CONFIGS: Record<
 		runCmd: (file) => ["node", file],
 	},
 	typescript: {
-		image: "node:20-alpine",
+		image: "node:22-alpine",
 		ext: ".ts",
 		runCmd: (file) => ["node", "--experimental-strip-types", file],
 	},
@@ -37,6 +42,21 @@ const LANGUAGE_CONFIGS: Record<
 		image: "golang:1.22-alpine",
 		ext: ".go",
 		runCmd: (file) => ["go", "run", file],
+		memoryBytes: 512 * 1024 * 1024,
+	},
+	c: {
+		image: "gcc:14",
+		ext: ".c",
+		runCmd: (file) => [`gcc -o /work/prog /work/${file} -lm && /work/prog`],
+		memoryBytes: 256 * 1024 * 1024,
+	},
+	cpp: {
+		image: "gcc:14",
+		ext: ".cpp",
+		runCmd: (file) => [
+			`g++ -std=c++17 -o /work/prog /work/${file} && /work/prog`,
+		],
+		memoryBytes: 256 * 1024 * 1024,
 	},
 };
 
@@ -60,12 +80,15 @@ const ensureImage = async (image: string): Promise<void> => {
 	}
 };
 
+const DEFAULT_MEMORY = 128 * 1024 * 1024;
+
 const runInContainer = async (
 	image: string,
 	cmd: string[],
 	code: string,
 	filename: string,
-	timeoutMs = 10_000
+	timeoutMs = 10_000,
+	memoryBytes = DEFAULT_MEMORY
 ): Promise<ExecResult> => {
 	await ensureImage(image);
 
@@ -77,8 +100,8 @@ const runInContainer = async (
 		Cmd: ["sh", "-c", shellCmd],
 		WorkingDir: "/work",
 		HostConfig: {
-			Memory: 128 * 1024 * 1024,
-			MemorySwap: 128 * 1024 * 1024,
+			Memory: memoryBytes,
+			MemorySwap: memoryBytes,
 			NetworkMode: "none",
 			AutoRemove: true,
 		},
@@ -149,9 +172,12 @@ export const executeCode = async (
 		config.runCmd(filename),
 		code,
 		filename,
-		timeoutMs
+		timeoutMs,
+		config.memoryBytes
 	);
 };
+
+const GO_PACKAGE_LINE_RE = /^(package\s+\w+[^\n]*\n)/m;
 
 export const runTests = async (
 	languageId: string,
@@ -163,16 +189,34 @@ export const runTests = async (
 		throw new Error(`Unsupported language: ${languageId}`);
 	}
 
+	const prepareUserCode = (code: string): string => {
+		if (languageId === "c" || languageId === "cpp") {
+			return `#define main __user_main__\n${code}\n#undef main`;
+		}
+
+		if (languageId === "go") {
+			let prepared = code.replace(/\bfunc main\b/g, "func __user_main__");
+			if (!prepared.includes('"fmt"')) {
+				prepared = prepared.replace(GO_PACKAGE_LINE_RE, '$1\nimport "fmt"\n');
+			}
+			return prepared;
+		}
+
+		return code;
+	};
+
 	const results = await Promise.all(
 		tests.map(async ({ title, testCode }) => {
-			const combined = `${userCode}\n\n${testCode}`;
+			const combined = `${prepareUserCode(userCode)}\n\n${testCode}`;
 			const filename = `test${config.ext}`;
 			try {
 				const { stdout, stderr, exitCode } = await runInContainer(
 					config.image,
 					config.runCmd(filename),
 					combined,
-					filename
+					filename,
+					undefined,
+					config.memoryBytes
 				);
 
 				if (exitCode !== 0) {

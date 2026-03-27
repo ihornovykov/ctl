@@ -66,11 +66,7 @@ export const useTaskWorkspace = create<State & Actions>((set) => ({
 			activeTab: "results",
 		}),
 
-	setSubmission: (sub) =>
-		set({
-			submission: sub,
-			activeTab: sub.testsPassed && sub.aiFeedback ? "results" : "console",
-		}),
+	setSubmission: (sub) => set({ submission: sub }),
 
 	reset: (starterCode, existingSubmission) =>
 		set({

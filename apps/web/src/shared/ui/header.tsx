@@ -1,5 +1,5 @@
 import { cn } from "@ctl/ui/lib/utils";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Code2 } from "lucide-react";
 
 import { UserMenu } from "@/features/auth";
@@ -11,14 +11,10 @@ const NAV_LINKS = [
 ] as const;
 
 export const Header = () => {
-	const { location } = useRouterState();
-	const isLanding = location.pathname === "/";
-
 	return (
 		<header
 			className={cn(
-				"sticky top-0 z-50 w-full border-border/40 border-b backdrop-blur-md",
-				isLanding ? "bg-background/60" : "bg-background/90"
+				"sticky top-0 z-50 w-full border-border/40 border-b bg-background/60 backdrop-blur-md"
 			)}
 		>
 			<div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">

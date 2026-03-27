@@ -5,7 +5,6 @@ import {
 	ArrowLeft,
 	ArrowRight,
 	FlaskConical,
-	Loader2,
 	LockKeyhole,
 	Play,
 	Send,
@@ -135,15 +134,12 @@ export const TaskToolbar = ({
 				{isReadOnly ? (
 					<Button
 						className="h-9 gap-2 text-sm"
-						disabled={isCompletingLesson}
+						icon={<ArrowRight className="size-4" />}
+						loading={isCompletingLesson}
 						onClick={onNextLesson}
 						size="sm"
+						variant="outline"
 					>
-						{isCompletingLesson ? (
-							<Loader2 className="size-4 animate-spin" />
-						) : (
-							<ArrowRight className="size-4" />
-						)}
 						Next Lesson
 					</Button>
 				) : (
@@ -151,33 +147,33 @@ export const TaskToolbar = ({
 						<Button
 							className="h-9 gap-2 text-sm"
 							disabled={isWorking}
+							icon={<Play className="size-4" />}
 							loading={isRunning}
 							onClick={onRun}
 							size="sm"
 							variant="outline"
 						>
-							<Play className="size-4" />
 							Run
 						</Button>
 						<Button
 							className="h-9 gap-2 text-sm"
 							disabled={isWorking}
+							icon={<FlaskConical className="size-4" />}
 							loading={isTestingAll}
 							onClick={onRunTests}
 							size="sm"
 							variant="outline"
 						>
-							<FlaskConical className="size-4" />
 							Test
 						</Button>
 						<Button
 							className="h-9 gap-2 text-sm"
 							disabled={isWorking || !allTestsPassed}
+							icon={<Send className="size-4" />}
 							loading={isSubmitting}
 							onClick={onSubmitClick}
 							size="sm"
 						>
-							<Send className="size-4" />
 							Submit
 						</Button>
 					</>

@@ -119,6 +119,7 @@ export async function* streamGrade(input: {
 		};
 	} else {
 		yield { type: "tests_failed", results: testResults };
+		return;
 	}
 
 	const maxScore = taskRow.criteria.reduce((sum, c) => sum + c.maxScore, 0);
@@ -144,7 +145,7 @@ export async function* streamGrade(input: {
 		}
 
 		aiFeedback = (await getResult()) as SubmissionOutput["aiFeedback"];
-		score = aiFeedback ? Math.round(aiFeedback.totalScore) : 0;
+		score = aiFeedback ? aiFeedback.totalScore : 0;
 	}
 
 	const existing = await db.query.submission.findFirst({

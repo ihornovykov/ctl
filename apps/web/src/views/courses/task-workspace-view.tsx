@@ -35,7 +35,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const TaskWorkspaceSkeleton = () => (
-	<div className="flex h-[calc(100vh-3.5rem)] flex-col bg-muted/10">
+	<div className="flex h-full w-full flex-col bg-muted/10">
 		<div className="flex h-14 items-center gap-4 border-border/40 border-b bg-background px-5">
 			<Skeleton className="h-4 w-16" />
 			<div className="h-5 w-px bg-border/50" />
@@ -69,7 +69,7 @@ const ErrorState = ({
 	description: string;
 	backLink: React.ReactNode;
 }) => (
-	<div className="flex min-h-svh flex-col items-center justify-center gap-6 px-4 text-center">
+	<div className="flex min-h-svh w-full flex-col items-center justify-center gap-6 px-4 text-center">
 		<div className="flex size-16 items-center justify-center rounded-2xl border border-border/40 bg-muted/30">
 			<BookOpen className="size-7 text-muted-foreground/50" />
 		</div>
@@ -181,7 +181,7 @@ const WorkspaceInner = ({
 	};
 
 	return (
-		<div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-muted/10">
+		<div className="flex h-full w-full flex-col overflow-hidden bg-muted/10">
 			<TaskToolbar
 				allTestsPassed={allTestsPassed}
 				courseSlug={courseSlug}

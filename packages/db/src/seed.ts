@@ -231,6 +231,7 @@ Boolean("")  // false — empty string is falsy
 
 Use \`===\` (strict equality) instead of \`==\` to avoid unexpected coercions.`,
 		sortOrder: 1,
+		hasTask: true,
 	},
 	{
 		id: "lesson-js-02",
@@ -434,6 +435,7 @@ const x = 42;        // inferred as number
 const items = [];    // inferred as never[] — always annotate empty arrays
 \`\`\``,
 		sortOrder: 1,
+		hasTask: true,
 	},
 	{
 		id: "lesson-ts-02",
@@ -637,6 +639,7 @@ const pi = 3.14159
 
 Go is statically typed with type inference via \`:=\`.`,
 		sortOrder: 1,
+		hasTask: true,
 	},
 	{
 		id: "lesson-go-02",
@@ -854,6 +857,7 @@ def greet(name: str) -> str:
     return f"Hello, {name}!"
 \`\`\``,
 		sortOrder: 1,
+		hasTask: true,
 	},
 	{
 		id: "lesson-py-02",
@@ -1077,6 +1081,7 @@ char grade = 'A';
 printf("%d %f %c %s\\n", age, pi, grade, "Alice");
 \`\`\``,
 		sortOrder: 1,
+		hasTask: true,
 	},
 	{
 		id: "lesson-c-02",
@@ -1281,6 +1286,7 @@ namespace math {
 auto result = math::square(4.0); // 16.0
 \`\`\``,
 		sortOrder: 1,
+		hasTask: true,
 	},
 	{
 		id: "lesson-cpp-02",
@@ -1448,6 +1454,402 @@ auto doubled = even | std::views::transform([](int n){ return n * 2; });
 ] as const;
 
 const tasks = [
+	// ── JavaScript: Variables and Data Types ─────────────────────────────────
+	{
+		id: "task-js-01",
+		lessonId: "lesson-js-01",
+		languageId: "javascript",
+		description: `## Format a Price String
+
+Write a function \`formatPrice(amount, currency)\` that formats a monetary amount as a string.
+
+- The \`currency\` parameter should default to \`"USD"\`
+- The amount must always be displayed with **exactly 2 decimal places**
+- Output format: \`"CURRENCY AMOUNT"\` (e.g. \`"USD 19.99"\`)
+
+### Examples
+
+\`\`\`js
+formatPrice(19.99)         // "USD 19.99"
+formatPrice(9.5)           // "USD 9.50"
+formatPrice(100, "EUR")    // "EUR 100.00"
+formatPrice(0, "GBP")      // "GBP 0.00"
+\`\`\`
+
+### Requirements
+
+1. Default currency is \`"USD"\` when omitted
+2. Amount always has exactly 2 decimal places (use \`.toFixed(2)\`)
+3. Output format is \`"{CURRENCY} {AMOUNT}"\`
+4. Works with any positive number, zero, and large integers
+
+---
+
+> **Reference Solution** *(for testing only)*
+
+\`\`\`js
+function formatPrice(amount, currency = "USD") {
+  return \`\${currency} \${Number(amount).toFixed(2)}\`;
+}
+\`\`\``,
+		starterCode: `function formatPrice(amount, currency = "USD") {
+  // Your code here
+  // Return a formatted string like "USD 19.99" or "EUR 9.50"
+  // Hint: use .toFixed(2) to fix the decimal places
+}
+
+// Example usage:
+// formatPrice(19.99)        // "USD 19.99"
+// formatPrice(9.5)          // "USD 9.50"
+// formatPrice(100, "EUR")   // "EUR 100.00"
+`,
+		solutionCode: `function formatPrice(amount, currency = "USD") {
+  return \`\${currency} \${Number(amount).toFixed(2)}\`;
+}
+`,
+	},
+
+	// ── TypeScript: Type Annotations Basics ──────────────────────────────────
+	{
+		id: "task-ts-01",
+		lessonId: "lesson-ts-01",
+		languageId: "typescript",
+		description: `## Calculate a Letter Grade
+
+Write a function \`calculateGrade(score: number): string\` that converts a numeric score (0–100) to a letter grade.
+
+| Range | Grade |
+|-------|-------|
+| 90 +  | A     |
+| 80–89 | B     |
+| 70–79 | C     |
+| 60–69 | D     |
+| < 60  | F     |
+
+### Examples
+
+\`\`\`ts
+calculateGrade(95)  // "A"
+calculateGrade(82)  // "B"
+calculateGrade(74)  // "C"
+calculateGrade(61)  // "D"
+calculateGrade(45)  // "F"
+\`\`\`
+
+### Requirements
+
+1. Parameter \`score\` must be typed as \`number\`; return type must be \`string\`
+2. Return exactly the single-letter string (\`"A"\`, \`"B"\`, \`"C"\`, \`"D"\`, or \`"F"\`)
+3. Boundary values (90, 80, 70, 60) belong to the **upper** grade
+
+---
+
+> **Reference Solution** *(for testing only)*
+
+\`\`\`ts
+function calculateGrade(score: number): string {
+  if (score >= 90) return "A";
+  if (score >= 80) return "B";
+  if (score >= 70) return "C";
+  if (score >= 60) return "D";
+  return "F";
+}
+\`\`\``,
+		starterCode: `function calculateGrade(score: number): string {
+  // Your code here
+  // Return "A" for 90+, "B" for 80-89, "C" for 70-79, "D" for 60-69, "F" for below 60
+  return "";
+}
+
+// Example usage:
+// calculateGrade(95)  // "A"
+// calculateGrade(82)  // "B"
+// calculateGrade(45)  // "F"
+`,
+		solutionCode: `function calculateGrade(score: number): string {
+  if (score >= 90) return "A";
+  if (score >= 80) return "B";
+  if (score >= 70) return "C";
+  if (score >= 60) return "D";
+  return "F";
+}
+`,
+	},
+
+	// ── Go: Getting Started with Go ──────────────────────────────────────────
+	{
+		id: "task-go-01",
+		lessonId: "lesson-go-01",
+		languageId: "go",
+		description: `## Celsius from Fahrenheit
+
+Write a Go function \`CelsiusFromFahrenheit(f float64) float64\` that converts a Fahrenheit temperature to Celsius.
+
+**Formula:** C = (F − 32) × 5 / 9
+
+### Examples
+
+\`\`\`go
+CelsiusFromFahrenheit(212.0)  // 100.0  (boiling point)
+CelsiusFromFahrenheit(32.0)   // 0.0    (freezing point)
+CelsiusFromFahrenheit(-40.0)  // -40.0  (where scales meet)
+CelsiusFromFahrenheit(68.0)   // 20.0   (room temperature)
+\`\`\`
+
+### Requirements
+
+1. Accepts a \`float64\` and returns a \`float64\`
+2. Implements the formula exactly: \`(f - 32) * 5 / 9\`
+3. The starter file already imports \`"fmt"\` — do not remove it
+
+---
+
+> **Reference Solution** *(for testing only)*
+
+\`\`\`go
+func CelsiusFromFahrenheit(f float64) float64 {
+    return (f - 32) * 5 / 9
+}
+\`\`\``,
+		starterCode: `package main
+
+// CelsiusFromFahrenheit converts a Fahrenheit temperature to Celsius.
+// Formula: C = (F - 32) * 5 / 9
+func CelsiusFromFahrenheit(f float64) float64 {
+	// Your code here
+	return 0
+}
+`,
+		solutionCode: `package main
+
+// CelsiusFromFahrenheit converts a Fahrenheit temperature to Celsius.
+func CelsiusFromFahrenheit(f float64) float64 {
+	return (f - 32) * 5 / 9
+}
+`,
+	},
+
+	// ── Python: Python Syntax and Types ──────────────────────────────────────
+	{
+		id: "task-py-01",
+		lessonId: "lesson-py-01",
+		languageId: "python",
+		description: `## Is It a Palindrome?
+
+Write a Python function \`is_palindrome(text: str) -> bool\` that returns \`True\` if the input string is a palindrome.
+
+- **Ignore case** (treat uppercase and lowercase as equal)
+- **Ignore spaces** (remove all spaces before checking)
+- A palindrome reads the same forwards and backwards
+
+### Examples
+
+\`\`\`python
+is_palindrome("racecar")                      # True
+is_palindrome("hello")                        # False
+is_palindrome("A man a plan a canal Panama")  # True
+is_palindrome("Was it a car or a cat I saw")  # True
+is_palindrome("Python")                       # False
+\`\`\`
+
+### Requirements
+
+1. Parameter \`text\` is typed as \`str\`; return type is \`bool\`
+2. Case is ignored (convert to lowercase)
+3. Spaces are ignored (remove before comparing)
+4. An empty string is considered a palindrome
+
+---
+
+> **Reference Solution** *(for testing only)*
+
+\`\`\`python
+def is_palindrome(text: str) -> bool:
+    cleaned = text.lower().replace(" ", "")
+    return cleaned == cleaned[::-1]
+\`\`\``,
+		starterCode: `def is_palindrome(text: str) -> bool:
+    """Return True if text is a palindrome (ignoring case and spaces)."""
+    # Your code here
+    # Hint: clean the string (lowercase + remove spaces), then compare with its reverse
+    pass
+
+# Example usage:
+# is_palindrome("racecar")   # True
+# is_palindrome("hello")     # False
+`,
+		solutionCode: `def is_palindrome(text: str) -> bool:
+    cleaned = text.lower().replace(" ", "")
+    return cleaned == cleaned[::-1]
+`,
+	},
+
+	// ── C: C Basics and Compilation ──────────────────────────────────────────
+	{
+		id: "task-c-01",
+		lessonId: "lesson-c-01",
+		languageId: "c",
+		description: `## Sum the Digits of a Number
+
+Write a C function \`int sum_digits(int n)\` that returns the sum of all decimal digits of a non-negative integer \`n\`.
+
+For example, \`sum_digits(123)\` = 1 + 2 + 3 = **6**.
+
+### Examples
+
+\`\`\`c
+sum_digits(0)    // 0
+sum_digits(5)    // 5
+sum_digits(123)  // 6
+sum_digits(9999) // 36
+\`\`\`
+
+### Requirements
+
+1. Works for \`n = 0\` (returns 0)
+2. Works for single-digit numbers
+3. Correctly sums all digits for multi-digit numbers
+4. Uses a loop to extract digits with the modulo (\`%\`) and integer division (\`/\`) operators
+
+---
+
+> **Reference Solution** *(for testing only)*
+
+\`\`\`c
+int sum_digits(int n) {
+    int sum = 0;
+    while (n > 0) {
+        sum += n % 10;
+        n /= 10;
+    }
+    return sum;
+}
+\`\`\``,
+		starterCode: `#include <stdio.h>
+
+/* sum_digits returns the sum of all decimal digits of n.
+ * Example: sum_digits(123) == 6  (1 + 2 + 3)
+ */
+int sum_digits(int n) {
+    /* Your code here */
+    return 0;
+}
+
+int main(void) {
+    printf("%d\\n", sum_digits(0));
+    printf("%d\\n", sum_digits(123));
+    printf("%d\\n", sum_digits(9999));
+    return 0;
+}
+`,
+		solutionCode: `#include <stdio.h>
+
+int sum_digits(int n) {
+    int sum = 0;
+    while (n > 0) {
+        sum += n % 10;
+        n /= 10;
+    }
+    return sum;
+}
+
+int main(void) {
+    printf("%d\\n", sum_digits(0));
+    printf("%d\\n", sum_digits(123));
+    printf("%d\\n", sum_digits(9999));
+    return 0;
+}
+`,
+	},
+
+	// ── C++: C++ Basics and Classes ───────────────────────────────────────────
+	{
+		id: "task-cpp-01",
+		lessonId: "lesson-cpp-01",
+		languageId: "cpp",
+		description: `## Count Vowels in a String
+
+Write a C++ function \`int countVowels(const std::string& s)\` that returns the number of vowel characters (\`a e i o u\`, case-insensitive) in the input string.
+
+### Examples
+
+\`\`\`cpp
+countVowels("Hello")        // 2  (e, o)
+countVowels("Hello World")  // 3  (e, o, o)
+countVowels("rhythm")       // 0
+countVowels("")             // 0
+countVowels("AEIOU")        // 5
+\`\`\`
+
+### Requirements
+
+1. Counts both lowercase and uppercase vowels
+2. Non-vowel characters (consonants, spaces, digits, etc.) are not counted
+3. Returns 0 for an empty string
+4. Use a range-based \`for\` loop to iterate over characters
+
+---
+
+> **Reference Solution** *(for testing only)*
+
+\`\`\`cpp
+#include <string>
+#include <cctype>
+
+int countVowels(const std::string& s) {
+    int count = 0;
+    for (char c : s) {
+        char lc = std::tolower(static_cast<unsigned char>(c));
+        if (lc == 'a' || lc == 'e' || lc == 'i' || lc == 'o' || lc == 'u') {
+            ++count;
+        }
+    }
+    return count;
+}
+\`\`\``,
+		starterCode: `#include <string>
+#include <cctype>
+#include <iostream>
+
+// countVowels returns the number of vowels (a, e, i, o, u, case-insensitive)
+// in the given string.
+int countVowels(const std::string& s) {
+    // Your code here
+    return 0;
+}
+
+int main() {
+    std::cout << countVowels("Hello")  << "\\n";
+    std::cout << countVowels("AEIOU")  << "\\n";
+    std::cout << countVowels("rhythm") << "\\n";
+    return 0;
+}
+`,
+		solutionCode: `#include <string>
+#include <cctype>
+#include <iostream>
+
+int countVowels(const std::string& s) {
+    int count = 0;
+    for (char c : s) {
+        char lc = std::tolower(static_cast<unsigned char>(c));
+        if (lc == 'a' || lc == 'e' || lc == 'i' || lc == 'o' || lc == 'u') {
+            ++count;
+        }
+    }
+    return count;
+}
+
+int main() {
+    std::cout << countVowels("Hello")  << "\\n";
+    std::cout << countVowels("AEIOU")  << "\\n";
+    std::cout << countVowels("rhythm") << "\\n";
+    return 0;
+}
+`,
+	},
+
+	// ── Existing JavaScript tasks ─────────────────────────────────────────────
 	{
 		id: "task-js-03",
 		lessonId: "lesson-js-03",
@@ -1479,7 +1881,26 @@ counter2.getCount();  // 11
 1. \`makeCounter\` must accept an optional \`start\` parameter (default \`0\`)
 2. Each call to \`increment()\` must increase the count by exactly 1
 3. \`getCount()\` must return the current count without side effects
-4. Multiple counters must be independent of each other`,
+4. Multiple counters must be independent of each other
+
+---
+
+> **Reference Solution** *(for testing only)*
+
+\`\`\`js
+function makeCounter(start = 0) {
+  let count = start;
+  return {
+    increment() {
+      count += 1;
+      return count;
+    },
+    getCount() {
+      return count;
+    },
+  };
+}
+\`\`\``,
 		starterCode: `function makeCounter(start = 0) {
   // Your code here
   // Return an object with increment() and getCount() methods
@@ -1539,7 +1960,19 @@ transformUsers(users);
 2. Return objects with only \`id\` and \`name\`
 3. Convert \`name\` to uppercase
 4. Preserve the original array order
-5. Do not mutate the original array`,
+5. Do not mutate the original array
+
+---
+
+> **Reference Solution** *(for testing only)*
+
+\`\`\`js
+function transformUsers(users) {
+  return users
+    .filter(user => user.active)
+    .map(({ id, name }) => ({ id, name: name.toUpperCase() }));
+}
+\`\`\``,
 		starterCode: `function transformUsers(users) {
   // Your code here
   // Filter inactive users, keep only id and name, uppercase the name
@@ -1562,6 +1995,330 @@ transformUsers(users);
 ];
 
 const taskTests = [
+	// ── Tests for task-c-01 (sum_digits) ─────────────────────────────────────
+	{
+		id: "test-c-01-01",
+		taskId: "task-c-01",
+		title: "sum_digits(123) == 6",
+		testCode: `#include <stdio.h>
+
+int main(void) {
+    int result = sum_digits(123);
+    if (result != 6) {
+        fprintf(stderr, "Expected 6 for 123, got %d\\n", result);
+        return 1;
+    }
+    printf("{\\"passed\\": true}\\n");
+    return 0;
+}`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-c-01-02",
+		taskId: "task-c-01",
+		title: "sum_digits(0) == 0",
+		testCode: `#include <stdio.h>
+
+int main(void) {
+    int result = sum_digits(0);
+    if (result != 0) {
+        fprintf(stderr, "Expected 0 for 0, got %d\\n", result);
+        return 1;
+    }
+    printf("{\\"passed\\": true}\\n");
+    return 0;
+}`,
+		sortOrder: 2,
+	},
+	{
+		id: "test-c-01-03",
+		taskId: "task-c-01",
+		title: "sum_digits(5) == 5 (single digit)",
+		testCode: `#include <stdio.h>
+
+int main(void) {
+    int result = sum_digits(5);
+    if (result != 5) {
+        fprintf(stderr, "Expected 5 for 5, got %d\\n", result);
+        return 1;
+    }
+    printf("{\\"passed\\": true}\\n");
+    return 0;
+}`,
+		sortOrder: 3,
+	},
+	{
+		id: "test-c-01-04",
+		taskId: "task-c-01",
+		title: "sum_digits(9999) == 36",
+		testCode: `#include <stdio.h>
+
+int main(void) {
+    int result = sum_digits(9999);
+    if (result != 36) {
+        fprintf(stderr, "Expected 36 for 9999, got %d\\n", result);
+        return 1;
+    }
+    printf("{\\"passed\\": true}\\n");
+    return 0;
+}`,
+		sortOrder: 4,
+	},
+
+	// ── Tests for task-cpp-01 (countVowels) ──────────────────────────────────
+	{
+		id: "test-cpp-01-01",
+		taskId: "task-cpp-01",
+		title: 'countVowels("Hello") == 2',
+		testCode: `#include <iostream>
+#include <string>
+
+int main() {
+    int result = countVowels("Hello");
+    if (result != 2) {
+        std::cerr << "Expected 2 for \\"Hello\\", got " << result << std::endl;
+        return 1;
+    }
+    std::cout << "{\\"passed\\": true}" << std::endl;
+    return 0;
+}`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-cpp-01-02",
+		taskId: "task-cpp-01",
+		title: 'countVowels("") == 0 (empty string)',
+		testCode: `#include <iostream>
+#include <string>
+
+int main() {
+    int result = countVowels("");
+    if (result != 0) {
+        std::cerr << "Expected 0 for empty string, got " << result << std::endl;
+        return 1;
+    }
+    std::cout << "{\\"passed\\": true}" << std::endl;
+    return 0;
+}`,
+		sortOrder: 2,
+	},
+	{
+		id: "test-cpp-01-03",
+		taskId: "task-cpp-01",
+		title: 'countVowels("AEIOU") == 5 (uppercase vowels)',
+		testCode: `#include <iostream>
+#include <string>
+
+int main() {
+    int result = countVowels("AEIOU");
+    if (result != 5) {
+        std::cerr << "Expected 5 for \\"AEIOU\\", got " << result << std::endl;
+        return 1;
+    }
+    std::cout << "{\\"passed\\": true}" << std::endl;
+    return 0;
+}`,
+		sortOrder: 3,
+	},
+	{
+		id: "test-cpp-01-04",
+		taskId: "task-cpp-01",
+		title: 'countVowels("rhythm") == 0 (no vowels)',
+		testCode: `#include <iostream>
+#include <string>
+
+int main() {
+    int result = countVowels("rhythm");
+    if (result != 0) {
+        std::cerr << "Expected 0 for \\"rhythm\\", got " << result << std::endl;
+        return 1;
+    }
+    std::cout << "{\\"passed\\": true}" << std::endl;
+    return 0;
+}`,
+		sortOrder: 4,
+	},
+
+	// ── Tests for task-js-01 (formatPrice) ───────────────────────────────────
+	{
+		id: "test-js-01-01",
+		taskId: "task-js-01",
+		title: 'formatPrice(19.99) returns "USD 19.99"',
+		testCode: `const result = formatPrice(19.99);
+if (result !== "USD 19.99") throw new Error("Expected 'USD 19.99', got '" + result + "'");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-js-01-02",
+		taskId: "task-js-01",
+		title: 'formatPrice(9.5) pads to 2 decimal places → "USD 9.50"',
+		testCode: `const result = formatPrice(9.5);
+if (result !== "USD 9.50") throw new Error("Expected 'USD 9.50', got '" + result + "'");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 2,
+	},
+	{
+		id: "test-js-01-03",
+		taskId: "task-js-01",
+		title: 'formatPrice(100, "EUR") uses the provided currency',
+		testCode: `const result = formatPrice(100, "EUR");
+if (result !== "EUR 100.00") throw new Error("Expected 'EUR 100.00', got '" + result + "'");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 3,
+	},
+	{
+		id: "test-js-01-04",
+		taskId: "task-js-01",
+		title: 'formatPrice(0) returns "USD 0.00"',
+		testCode: `const result = formatPrice(0);
+if (result !== "USD 0.00") throw new Error("Expected 'USD 0.00', got '" + result + "'");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 4,
+	},
+
+	// ── Tests for task-ts-01 (calculateGrade) ────────────────────────────────
+	{
+		id: "test-ts-01-01",
+		taskId: "task-ts-01",
+		title: 'calculateGrade(95) returns "A"',
+		testCode: `const result = calculateGrade(95);
+if (result !== "A") throw new Error("Expected 'A' for 95, got '" + result + "'");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-ts-01-02",
+		taskId: "task-ts-01",
+		title: 'calculateGrade(82) returns "B"',
+		testCode: `const result = calculateGrade(82);
+if (result !== "B") throw new Error("Expected 'B' for 82, got '" + result + "'");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 2,
+	},
+	{
+		id: "test-ts-01-03",
+		taskId: "task-ts-01",
+		title: 'calculateGrade(74) returns "C" and calculateGrade(61) returns "D"',
+		testCode: `const r1 = calculateGrade(74);
+if (r1 !== "C") throw new Error("Expected 'C' for 74, got '" + r1 + "'");
+const r2 = calculateGrade(61);
+if (r2 !== "D") throw new Error("Expected 'D' for 61, got '" + r2 + "'");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 3,
+	},
+	{
+		id: "test-ts-01-04",
+		taskId: "task-ts-01",
+		title: 'calculateGrade(45) returns "F" and boundary 90 returns "A"',
+		testCode: `const r1 = calculateGrade(45);
+if (r1 !== "F") throw new Error("Expected 'F' for 45, got '" + r1 + "'");
+const r2 = calculateGrade(90);
+if (r2 !== "A") throw new Error("Expected 'A' for boundary 90, got '" + r2 + "'");
+console.log(JSON.stringify({ passed: true }));`,
+		sortOrder: 4,
+	},
+
+	// ── Tests for task-go-01 (CelsiusFromFahrenheit) ─────────────────────────
+	{
+		id: "test-go-01-01",
+		taskId: "task-go-01",
+		title: "212°F → 100°C (boiling point)",
+		testCode: `func main() {
+	result := CelsiusFromFahrenheit(212.0)
+	if result != 100.0 {
+		panic(fmt.Sprintf("212°F: expected 100.0°C, got %v", result))
+	}
+	fmt.Println(\`{"passed": true}\`)
+}`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-go-01-02",
+		taskId: "task-go-01",
+		title: "32°F → 0°C (freezing point)",
+		testCode: `func main() {
+	result := CelsiusFromFahrenheit(32.0)
+	if result != 0.0 {
+		panic(fmt.Sprintf("32°F: expected 0.0°C, got %v", result))
+	}
+	fmt.Println(\`{"passed": true}\`)
+}`,
+		sortOrder: 2,
+	},
+	{
+		id: "test-go-01-03",
+		taskId: "task-go-01",
+		title: "-40°F → -40°C (scales intersect)",
+		testCode: `func main() {
+	result := CelsiusFromFahrenheit(-40.0)
+	if result != -40.0 {
+		panic(fmt.Sprintf("-40°F: expected -40.0°C, got %v", result))
+	}
+	fmt.Println(\`{"passed": true}\`)
+}`,
+		sortOrder: 3,
+	},
+	{
+		id: "test-go-01-04",
+		taskId: "task-go-01",
+		title: "68°F → 20°C (room temperature)",
+		testCode: `func main() {
+	result := CelsiusFromFahrenheit(68.0)
+	if result != 20.0 {
+		panic(fmt.Sprintf("68°F: expected 20.0°C, got %v", result))
+	}
+	fmt.Println(\`{"passed": true}\`)
+}`,
+		sortOrder: 4,
+	},
+
+	// ── Tests for task-py-01 (is_palindrome) ─────────────────────────────────
+	{
+		id: "test-py-01-01",
+		taskId: "task-py-01",
+		title: '"racecar" is a palindrome',
+		testCode: `import json
+result = is_palindrome("racecar")
+if result is not True:
+    raise AssertionError(f"Expected True for 'racecar', got {result}")
+print(json.dumps({"passed": True}))`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-py-01-02",
+		taskId: "task-py-01",
+		title: '"hello" is not a palindrome',
+		testCode: `import json
+result = is_palindrome("hello")
+if result is not False:
+    raise AssertionError(f"Expected False for 'hello', got {result}")
+print(json.dumps({"passed": True}))`,
+		sortOrder: 2,
+	},
+	{
+		id: "test-py-01-03",
+		taskId: "task-py-01",
+		title: 'ignores case and spaces: "A man a plan a canal Panama"',
+		testCode: `import json
+result = is_palindrome("A man a plan a canal Panama")
+if result is not True:
+    raise AssertionError(f"Expected True for classic phrase, got {result}")
+print(json.dumps({"passed": True}))`,
+		sortOrder: 3,
+	},
+	{
+		id: "test-py-01-04",
+		taskId: "task-py-01",
+		title: "empty string is a palindrome",
+		testCode: `import json
+result = is_palindrome("")
+if result is not True:
+    raise AssertionError(f"Expected True for empty string, got {result}")
+print(json.dumps({"passed": True}))`,
+		sortOrder: 4,
+	},
+
 	// Tests for task-js-03 (makeCounter)
 	{
 		id: "test-js-03-01",
@@ -1663,6 +2420,180 @@ console.log(JSON.stringify({ passed: true }));`,
 ];
 
 const gradingCriteriaData = [
+	// ── Criteria for task-c-01 (sum_digits) ─────────────────────────────────
+	{
+		id: "criteria-c-01-01",
+		taskId: "task-c-01",
+		name: "Correctness",
+		description:
+			"The function returns the correct digit sum for all inputs, including zero and single-digit numbers.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-c-01-02",
+		taskId: "task-c-01",
+		name: "Algorithm",
+		description:
+			"Uses modulo (%) and integer division (/) to extract digits iteratively, rather than converting to a string.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-c-01-03",
+		taskId: "task-c-01",
+		name: "Code Readability",
+		description:
+			"Variable names are meaningful, the loop is clear, and no unnecessary temporary allocations are made.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+
+	// ── Criteria for task-cpp-01 (countVowels) ───────────────────────────────
+	{
+		id: "criteria-cpp-01-01",
+		taskId: "task-cpp-01",
+		name: "Correctness",
+		description:
+			"Counts vowels correctly for all cases: lowercase, uppercase, mixed, no vowels, and empty string.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-cpp-01-02",
+		taskId: "task-cpp-01",
+		name: "C++ Idioms",
+		description:
+			"Uses a range-based for loop, std::tolower for case normalization, and a const reference parameter.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-cpp-01-03",
+		taskId: "task-cpp-01",
+		name: "Code Readability",
+		description:
+			"Code is concise and clearly expresses intent; the vowel check is easy to follow.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+
+	// ── Criteria for task-js-01 (formatPrice) ────────────────────────────────
+	{
+		id: "criteria-js-01-01",
+		taskId: "task-js-01",
+		name: "Correctness",
+		description:
+			"The function returns the correctly formatted price string for all inputs, including the default currency and edge cases like zero.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-js-01-02",
+		taskId: "task-js-01",
+		name: "Default Parameter Usage",
+		description:
+			"The solution uses a default parameter for currency rather than an if/else check inside the function body.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-js-01-03",
+		taskId: "task-js-01",
+		name: "Code Readability",
+		description:
+			"Code is concise and idiomatic, preferably using a template literal to compose the output string.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+
+	// ── Criteria for task-ts-01 (calculateGrade) ─────────────────────────────
+	{
+		id: "criteria-ts-01-01",
+		taskId: "task-ts-01",
+		name: "Correctness",
+		description:
+			"All grade boundaries are handled correctly, including exact boundary values (90 → A, 80 → B, etc.).",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-ts-01-02",
+		taskId: "task-ts-01",
+		name: "Type Annotations",
+		description:
+			"The function signature uses explicit TypeScript types for both the parameter (number) and return value (string).",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-ts-01-03",
+		taskId: "task-ts-01",
+		name: "Code Readability",
+		description:
+			"Logic uses a clean chain of early returns (guard clauses) rather than deeply nested if/else blocks.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+
+	// ── Criteria for task-go-01 (CelsiusFromFahrenheit) ──────────────────────
+	{
+		id: "criteria-go-01-01",
+		taskId: "task-go-01",
+		name: "Correctness",
+		description:
+			"The formula (F − 32) × 5 / 9 is implemented correctly and produces exact results for all test inputs.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-go-01-02",
+		taskId: "task-go-01",
+		name: "Go Idioms",
+		description:
+			"Code follows Go conventions: proper function signature with typed parameters and return value, no unnecessary variables.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-go-01-03",
+		taskId: "task-go-01",
+		name: "Code Readability",
+		description:
+			"The implementation is a single, clear expression. Variable names (if any) are descriptive.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+
+	// ── Criteria for task-py-01 (is_palindrome) ──────────────────────────────
+	{
+		id: "criteria-py-01-01",
+		taskId: "task-py-01",
+		name: "Correctness",
+		description:
+			"The function correctly handles normal palindromes, non-palindromes, mixed-case strings, and strings with spaces.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-py-01-02",
+		taskId: "task-py-01",
+		name: "Pythonic Style",
+		description:
+			"Solution uses Python idioms: string methods (lower, replace) and slice notation for reversal ([::-1]) rather than manual loops.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-py-01-03",
+		taskId: "task-py-01",
+		name: "Code Readability",
+		description:
+			"Code is concise, avoids unnecessary intermediate variables, and clearly expresses intent.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+
 	// Criteria for task-js-03 (makeCounter)
 	{
 		id: "criteria-js-03-01",
