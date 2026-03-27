@@ -42,7 +42,6 @@ export const LessonList = ({ course }: Props) => {
 
 	return (
 		<div>
-			{/* Section header */}
 			<div className="mb-8 flex items-center gap-3">
 				<div className="h-px flex-1 bg-border/50" />
 				<div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-4 py-1.5">
@@ -65,7 +64,6 @@ export const LessonList = ({ course }: Props) => {
 				<div className="h-px flex-1 bg-border/50" />
 			</div>
 
-			{/* Lesson timeline */}
 			<div>
 				{course.lessons.map((lesson, index) => (
 					<LessonItem

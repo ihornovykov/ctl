@@ -1,15 +1,8 @@
 import type { LessonDetail } from "@ctl/api/routers/courses/validation";
-import { buttonVariants } from "@ctl/ui/components/button";
 import { ScrollArea } from "@ctl/ui/components/scroll-area";
 import { cn } from "@ctl/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import {
-	ArrowLeft,
-	BookOpen,
-	CheckCircle2,
-	Lock,
-	PlayCircle,
-} from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle2, Lock, Play } from "lucide-react";
 
 type Props = {
 	lesson: LessonDetail;
@@ -24,51 +17,50 @@ const LessonNavItem = ({
 	courseSlug: string;
 	isActive: boolean;
 }) => {
-	const icon = (() => {
-		if (item.isCompleted) {
-			return <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />;
-		}
-		if (item.isAccessible) {
-			return (
-				<PlayCircle
-					className={cn(
-						"size-4 shrink-0",
-						isActive ? "text-primary" : "text-primary/70"
-					)}
-				/>
-			);
-		}
-		return <Lock className="size-4 shrink-0 text-muted-foreground/40" />;
-	})();
-
 	const isClickable = item.isAccessible || item.isCompleted;
 
-	const containerClass = cn(
-		"group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all duration-200",
-		isActive && "bg-primary/10 ring-1 ring-primary/20",
-		!isActive && isClickable && "cursor-pointer hover:bg-muted/60",
-		!(isActive || isClickable) && "cursor-not-allowed opacity-50"
-	);
-
-	const titleClass = cn(
-		"truncate font-medium text-sm leading-snug",
-		isActive && "text-primary",
-		!isActive && item.isCompleted && "text-foreground",
-		!(isActive || item.isCompleted) &&
-			item.isAccessible &&
-			"text-foreground/90",
-		!(isActive || item.isCompleted || item.isAccessible) &&
-			"text-muted-foreground/60"
-	);
-
-	const content = (
-		<div className={containerClass}>
-			<div className="mt-0.5 flex size-5 shrink-0 items-center justify-center">
-				{icon}
+	const inner = (
+		<div
+			className={cn(
+				"group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-150",
+				isActive &&
+					"bg-primary/10 ring-1 ring-primary/20 ring-inset dark:bg-primary/15",
+				!isActive && isClickable && "hover:bg-muted/70",
+				!(isActive || isClickable) && "cursor-not-allowed opacity-40"
+			)}
+		>
+			<div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted/60">
+				{item.isCompleted && (
+					<CheckCircle2 className="size-3.5 text-emerald-500" />
+				)}
+				{!item.isCompleted && item.isAccessible && (
+					<Play
+						className={cn(
+							"size-3 fill-current",
+							isActive ? "text-primary" : "text-muted-foreground/60"
+						)}
+					/>
+				)}
+				{!(item.isCompleted || item.isAccessible) && (
+					<Lock className="size-3 text-muted-foreground/40" />
+				)}
 			</div>
-			<div className="flex min-w-0 flex-col gap-0.5">
-				<span className={titleClass}>{item.title}</span>
-				<span className="font-mono text-[10px] text-muted-foreground/50">
+
+			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+				<span
+					className={cn(
+						"truncate text-sm leading-snug",
+						isActive && "font-semibold text-primary",
+						!isActive &&
+							(item.isCompleted || item.isAccessible) &&
+							"font-medium text-foreground",
+						!(isActive || item.isCompleted || item.isAccessible) &&
+							"font-medium text-muted-foreground/50"
+					)}
+				>
+					{item.title}
+				</span>
+				<span className="font-mono text-[10px] text-muted-foreground/40">
 					{String(item.sortOrder).padStart(2, "0")}
 				</span>
 			</div>
@@ -76,7 +68,7 @@ const LessonNavItem = ({
 	);
 
 	if (!isClickable) {
-		return content;
+		return inner;
 	}
 
 	return (
@@ -84,7 +76,7 @@ const LessonNavItem = ({
 			params={{ slug: courseSlug, lessonSlug: item.slug }}
 			to="/courses/$slug/lessons/$lessonSlug"
 		>
-			{content}
+			{inner}
 		</Link>
 	);
 };
@@ -97,39 +89,47 @@ export const LessonSidebar = ({ lesson }: Props) => {
 			: 0;
 
 	return (
-		<aside className="flex h-full w-72 shrink-0 flex-col border-border/50 border-r bg-card/50">
-			{/* Course header */}
-			<div className="flex flex-col gap-3 border-border/50 border-b p-4">
+		<aside className="flex h-full w-80 shrink-0 flex-col border-border/40 border-r bg-background">
+			<div className="flex flex-col gap-4 border-border/40 border-b p-5">
 				<Link
-					className={cn(
-						buttonVariants({ variant: "ghost", size: "sm" }),
-						"w-fit justify-start gap-2 px-2 text-muted-foreground"
-					)}
+					className="flex w-fit items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
 					params={{ slug: course.slug }}
 					to="/courses/$slug"
 				>
 					<ArrowLeft className="size-3.5" />
-					Back to course
+					All lessons
 				</Link>
-				<div className="flex flex-col gap-1">
-					<h2 className="line-clamp-2 font-semibold text-sm leading-snug">
-						{course.title}
-					</h2>
-					<div className="flex items-center gap-2 text-muted-foreground text-xs">
-						<BookOpen className="size-3" />
-						{course.completedLessons} / {course.totalLessons} completed
+
+				<div className="flex items-start gap-3">
+					<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+						<BookOpen className="size-5 text-primary" />
+					</div>
+					<div className="flex min-w-0 flex-col gap-1">
+						<h2 className="line-clamp-2 font-bold text-base leading-snug tracking-tight">
+							{course.title}
+						</h2>
+						<p className="text-muted-foreground text-xs">
+							{course.completedLessons} of {course.totalLessons} lessons done
+						</p>
 					</div>
 				</div>
-				{/* Progress bar */}
-				<div className="h-1.5 overflow-hidden rounded-full bg-muted">
-					<div
-						className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
-						style={{ width: `${progressPct}%` }}
-					/>
+
+				<div className="flex flex-col gap-1.5">
+					<div className="flex items-center justify-between">
+						<span className="text-muted-foreground text-xs">Progress</span>
+						<span className="font-semibold text-foreground text-xs">
+							{progressPct}%
+						</span>
+					</div>
+					<div className="h-2 overflow-hidden rounded-full bg-muted">
+						<div
+							className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
+							style={{ width: `${progressPct}%` }}
+						/>
+					</div>
 				</div>
 			</div>
 
-			{/* Lesson list */}
 			<ScrollArea className="flex-1">
 				<div className="flex flex-col gap-0.5 p-3">
 					{course.lessons.map((item) => (

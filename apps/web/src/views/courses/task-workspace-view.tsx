@@ -1,7 +1,7 @@
 import { Skeleton } from "@ctl/ui/components/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@ctl/ui/components/tabs";
+import { cn } from "@ctl/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Cpu, TerminalSquare, TestTube } from "lucide-react";
 import { useEffect } from "react";
 
 import { useLesson } from "@/features/courses";
@@ -24,27 +24,58 @@ type Props = {
 	lessonSlug: string;
 };
 
+const TABS = [
+	{ id: "overview", label: "Overview", icon: BookOpen },
+	{ id: "console", label: "Console", icon: TerminalSquare },
+	{ id: "results", label: "Results", icon: TestTube },
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
+
 const TaskWorkspaceSkeleton = () => (
-	<div className="flex h-[calc(100vh-3.5rem)] flex-col">
-		<div className="flex h-12 items-center gap-3 border-border/50 border-b px-4">
-			<Skeleton className="h-4 w-28" />
-			<div className="h-4 w-px bg-border/60" />
-			<Skeleton className="h-5 w-20 rounded-full" />
-			<div className="ml-auto flex gap-2">
-				<Skeleton className="h-8 w-16" />
-				<Skeleton className="h-8 w-16" />
-				<Skeleton className="h-8 w-20" />
+	<div className="flex h-[calc(100vh-3.5rem)] flex-col bg-muted/10">
+		<div className="flex h-14 items-center gap-4 border-border/40 border-b bg-background px-5">
+			<Skeleton className="h-4 w-16" />
+			<div className="h-5 w-px bg-border/50" />
+			<Skeleton className="h-6 w-10 rounded-md" />
+			<div className="ml-auto flex gap-2.5">
+				<Skeleton className="h-9 w-16 rounded-lg" />
+				<Skeleton className="h-9 w-16 rounded-lg" />
+				<Skeleton className="h-9 w-20 rounded-lg" />
 			</div>
 		</div>
-		<div className="flex flex-1 overflow-hidden">
-			<div className="flex-1 border-border/50 border-r">
-				<Skeleton className="h-full w-full rounded-none" />
-			</div>
-			<div className="flex w-[42%] flex-col">
-				<Skeleton className="h-10 w-full rounded-none" />
+		<div className="flex flex-1 gap-3 overflow-hidden p-3 pt-2">
+			<Skeleton className="flex-1 rounded-xl" />
+			<div className="flex w-[42%] flex-col gap-0 overflow-hidden rounded-xl border border-border/40">
+				<div className="flex h-11 items-center gap-2 border-border/40 border-b bg-background px-4">
+					{[80, 72, 68].map((w) => (
+						<Skeleton className="h-4 rounded-md" key={w} style={{ width: w }} />
+					))}
+				</div>
 				<Skeleton className="flex-1 rounded-none" />
 			</div>
 		</div>
+	</div>
+);
+
+const ErrorState = ({
+	title,
+	description,
+	backLink,
+}: {
+	title: string;
+	description: string;
+	backLink: React.ReactNode;
+}) => (
+	<div className="flex min-h-svh flex-col items-center justify-center gap-6 px-4 text-center">
+		<div className="flex size-16 items-center justify-center rounded-2xl border border-border/40 bg-muted/30">
+			<BookOpen className="size-7 text-muted-foreground/50" />
+		</div>
+		<div className="flex flex-col gap-2">
+			<h2 className="font-semibold text-xl tracking-tight">{title}</h2>
+			<p className="text-muted-foreground text-sm">{description}</p>
+		</div>
+		{backLink}
 	</div>
 );
 
@@ -88,37 +119,33 @@ const WorkspaceInner = ({
 
 	if (isError || !data) {
 		return (
-			<div className="flex min-h-svh flex-col items-center justify-center gap-6 px-4 text-center">
-				<div className="flex size-16 items-center justify-center rounded-2xl bg-muted/50">
-					<BookOpen className="size-7 text-muted-foreground/50" />
-				</div>
-				<div className="flex flex-col gap-2">
-					<h2 className="font-semibold text-xl">Task not found</h2>
-					<p className="text-muted-foreground text-sm">
-						This task doesn't exist or isn't accessible yet.
-					</p>
-				</div>
-				<Link
-					className="text-muted-foreground text-sm underline underline-offset-4 transition-colors hover:text-foreground"
-					params={{ slug: courseSlug, lessonSlug }}
-					to="/courses/$slug/lessons/$lessonSlug"
-				>
-					Back to lesson
-				</Link>
-			</div>
+			<ErrorState
+				backLink={
+					<Link
+						className="font-medium text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline"
+						params={{ slug: courseSlug, lessonSlug }}
+						to="/courses/$slug/lessons/$lessonSlug"
+					>
+						Back to lesson
+					</Link>
+				}
+				description="This task doesn't exist or isn't accessible yet."
+				title="Task not found"
+			/>
 		);
 	}
 
 	const { task } = data;
 	const currentSubmission = submission ?? data.submission;
 	const isReadOnly = !!currentSubmission?.testsPassed;
+	const hasAiFeedback = !!currentSubmission?.aiFeedback;
 
 	const onRun = () => runCode.mutate({ taskId: task.id, code });
 	const onRunTests = () => runTests.mutate({ taskId: task.id, code });
 	const onSubmit = () => submitTask.mutate({ taskId: task.id, code });
 
 	return (
-		<div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden">
+		<div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-muted/10">
 			<TaskToolbar
 				courseSlug={courseSlug}
 				isReadOnly={isReadOnly}
@@ -132,8 +159,9 @@ const WorkspaceInner = ({
 				onSubmit={onSubmit}
 			/>
 
-			<div className="flex flex-1 overflow-hidden">
-				<div className="flex w-[58%] flex-col border-border/50 border-r">
+			<div className="flex flex-1 gap-3 overflow-hidden p-3 pt-2">
+				{/* Editor card */}
+				<div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/40 bg-background shadow-sm">
 					<CodeEditor
 						code={code}
 						languageId={task.languageId}
@@ -142,56 +170,73 @@ const WorkspaceInner = ({
 					/>
 				</div>
 
-				<div className="flex w-[42%] flex-col overflow-hidden">
-					<Tabs
-						className="flex h-full flex-col"
-						onValueChange={(v) =>
-							setActiveTab(v as "overview" | "console" | "results")
-						}
-						value={activeTab}
-					>
-						<TabsList className="h-10 w-full justify-start rounded-none border-border/50 border-b bg-muted/30 px-2">
-							<TabsTrigger
-								className="rounded-sm text-xs data-[state=active]:bg-background"
-								value="overview"
-							>
-								Overview
-							</TabsTrigger>
-							<TabsTrigger
-								className="rounded-sm text-xs data-[state=active]:bg-background"
-								value="console"
-							>
-								Console
-							</TabsTrigger>
-							<TabsTrigger
-								className="rounded-sm text-xs data-[state=active]:bg-background"
-								value="results"
-							>
-								Results
-							</TabsTrigger>
-						</TabsList>
-
-						<div className="flex flex-1 flex-col overflow-hidden">
-							{activeTab === "overview" && (
-								<TaskDescription description={task.description} />
-							)}
-							{activeTab === "console" && (
-								<ConsoleOutput stderr={consoleError} stdout={consoleOutput} />
-							)}
-							{activeTab === "results" && (
-								<div className="flex flex-1 flex-col overflow-hidden">
-									{currentSubmission?.aiFeedback ? (
-										<AiFeedbackPanel
-											criteria={task.criteria}
-											feedback={currentSubmission.aiFeedback}
-										/>
-									) : (
-										<TestResults results={testResults} />
+				{/* Right panel card */}
+				<div className="flex w-[42%] min-w-0 flex-col overflow-hidden rounded-xl border border-border/40 bg-background shadow-sm">
+					{/* Tab bar */}
+					<div className="flex h-11 shrink-0 items-center border-border/40 border-b px-2">
+						{TABS.map(({ id, label, icon: Icon }) => {
+							const isActive = activeTab === id;
+							const showBadge =
+								id === "results" && (testResults.length > 0 || hasAiFeedback);
+							return (
+								<button
+									className={cn(
+										"relative flex h-full items-center gap-1.5 border-b-2 px-3 font-medium text-sm transition-colors",
+										isActive
+											? "border-primary text-foreground"
+											: "border-transparent text-muted-foreground hover:text-foreground"
 									)}
-								</div>
-							)}
-						</div>
-					</Tabs>
+									key={id}
+									onClick={() => setActiveTab(id as TabId)}
+									type="button"
+								>
+									<Icon className="size-3.5" />
+									{label}
+									{showBadge && (
+										<span
+											className={cn(
+												"size-1.5 rounded-full",
+												hasAiFeedback && id === "results"
+													? "bg-primary"
+													: "bg-sky-500"
+											)}
+										/>
+									)}
+								</button>
+							);
+						})}
+
+						{hasAiFeedback && (
+							<div className="ml-auto flex items-center gap-1.5 px-2">
+								<Cpu className="size-3.5 text-primary" />
+								<span className="font-semibold text-primary text-xs">
+									AI Graded
+								</span>
+							</div>
+						)}
+					</div>
+
+					{/* Panel content */}
+					<div className="flex flex-1 flex-col overflow-hidden">
+						{activeTab === "overview" && (
+							<TaskDescription description={task.description} />
+						)}
+						{activeTab === "console" && (
+							<ConsoleOutput stderr={consoleError} stdout={consoleOutput} />
+						)}
+						{activeTab === "results" && (
+							<div className="flex flex-1 flex-col overflow-hidden">
+								{currentSubmission?.aiFeedback ? (
+									<AiFeedbackPanel
+										criteria={task.criteria}
+										feedback={currentSubmission.aiFeedback}
+									/>
+								) : (
+									<TestResults results={testResults} />
+								)}
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -211,24 +256,19 @@ export const TaskWorkspaceView = ({ courseSlug, lessonSlug }: Props) => {
 
 	if (isError || !lesson) {
 		return (
-			<div className="flex min-h-svh flex-col items-center justify-center gap-6 px-4 text-center">
-				<div className="flex size-16 items-center justify-center rounded-2xl bg-muted/50">
-					<BookOpen className="size-7 text-muted-foreground/50" />
-				</div>
-				<div className="flex flex-col gap-2">
-					<h2 className="font-semibold text-xl">Lesson not found</h2>
-					<p className="text-muted-foreground text-sm">
-						This lesson doesn't exist or isn't accessible yet.
-					</p>
-				</div>
-				<Link
-					className="text-muted-foreground text-sm underline underline-offset-4 transition-colors hover:text-foreground"
-					params={{ slug: courseSlug }}
-					to="/courses/$slug"
-				>
-					Back to course
-				</Link>
-			</div>
+			<ErrorState
+				backLink={
+					<Link
+						className="font-medium text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline"
+						params={{ slug: courseSlug }}
+						to="/courses/$slug"
+					>
+						Back to course
+					</Link>
+				}
+				description="This lesson doesn't exist or isn't accessible yet."
+				title="Lesson not found"
+			/>
 		);
 	}
 

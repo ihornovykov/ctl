@@ -16,7 +16,6 @@ type Props = {
 
 const CourseDetailSkeleton = () => (
 	<div className="min-h-svh">
-		{/* Header skeleton */}
 		<div className="relative -mt-14 flex min-h-svh flex-col items-center justify-center overflow-x-hidden border-border/50 border-b">
 			<div className="mx-auto w-full max-w-6xl px-4 pt-28 pb-14 sm:px-6 md:pt-36 md:pb-20">
 				<Skeleton className="mb-10 h-4 w-24" />
@@ -36,7 +35,6 @@ const CourseDetailSkeleton = () => (
 			</div>
 		</div>
 
-		{/* Lesson list skeleton */}
 		<div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
 			<div className="mb-8 flex items-center gap-3">
 				<div className="h-px flex-1 bg-border/50" />
@@ -86,7 +84,6 @@ export const CourseDetailView = ({ slug }: Props) => {
 				onEnroll={() => enroll(course.id)}
 			/>
 
-			{/* Lessons section */}
 			<div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
 				<LessonList course={course} />
 			</div>

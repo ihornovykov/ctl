@@ -9,9 +9,18 @@ catalogs:
     '@orpc/client':
       specifier: ^1.12.2
       version: 1.13.13
+    '@orpc/openapi':
+      specifier: ^1.12.2
+      version: 1.13.13
     '@orpc/server':
       specifier: ^1.12.2
       version: 1.13.13
+    '@orpc/zod':
+      specifier: ^1.12.2
+      version: 1.13.13
+    '@types/node':
+      specifier: ^22.13.14
+      version: 22.19.15
     '@types/react':
       specifier: ^19.2.10
       version: 19.2.14
@@ -220,6 +229,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.2.2
+      ts-pattern:
+        specifier: ^5.9.0
+        version: 5.9.0
       vite-tsconfig-paths:
         specifier: ^5.1.4
         version: 5.1.4(typescript@5.9.3)(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0))
@@ -5164,6 +5176,9 @@ packages:
 
   ts-morph@26.0.0:
     resolution: {integrity: sha512-ztMO++owQnz8c/gIENcM9XfCEzgoGphTv+nKpYNM1bgsdOVC/jRZuEBf6N+mLLDNg68Kl+GgUZfOySaRiG1/Ug==}
+
+  ts-pattern@5.9.0:
+    resolution: {integrity: sha512-6s5V71mX8qBUmlgbrfL33xDUwO0fq48rxAu2LBE11WBeGdpCPOsXksQbZJHvHwhrd3QjUusd3mAOM5Gg0mFBLg==}
 
   tsconfck@3.1.6:
     resolution: {integrity: sha512-ks6Vjr/jEw0P1gmOVwutM3B7fWxoWBL2KRDb1JfqGVawBmO5UsvmWOQFGHBPl5yxYz4eERr19E6L7NMv+Fej4w==}
@@ -10339,6 +10354,8 @@ snapshots:
     dependencies:
       '@ts-morph/common': 0.27.0
       code-block-writer: 13.0.3
+
+  ts-pattern@5.9.0: {}
 
   tsconfck@3.1.6(typescript@5.9.3):
     optionalDependencies:
