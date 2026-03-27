@@ -85,6 +85,30 @@ export const submitOutputSchema = z.object({
 	testResults: z.array(testResultSchema),
 });
 
+export const gradeStreamEventSchema = z.discriminatedUnion("type", [
+	z.object({ type: z.literal("running_tests") }),
+	z.object({
+		type: z.literal("tests_complete"),
+		passed: z.number(),
+		total: z.number(),
+		results: z.array(testResultSchema),
+	}),
+	z.object({
+		type: z.literal("tests_failed"),
+		results: z.array(testResultSchema),
+	}),
+	z.object({ type: z.literal("grading_start") }),
+	z.object({ type: z.literal("partial_feedback"), feedback: z.unknown() }),
+	z.object({
+		type: z.literal("done"),
+		submission: submissionSchema,
+		testResults: z.array(testResultSchema),
+	}),
+	z.object({ type: z.literal("error"), message: z.string() }),
+]);
+
+export type GradeStreamEvent = z.infer<typeof gradeStreamEventSchema>;
+
 export type GetByLessonIdInput = z.infer<typeof getByLessonIdInput>;
 export type RunCodeInput = z.infer<typeof runCodeInput>;
 export type RunTestsInput = z.infer<typeof runTestsInput>;

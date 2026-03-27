@@ -115,7 +115,6 @@ export const CodeBlock = ({ code, lang = "text", className }: Props) => {
 				className
 			)}
 		>
-			{/* Header bar */}
 			<div className="flex items-center justify-between border-border/60 border-b bg-[#f6f8fa] px-4 py-2 dark:bg-[#161b22]">
 				<span className="font-mono text-[11px] text-foreground/40 uppercase tracking-wider">
 					{label}

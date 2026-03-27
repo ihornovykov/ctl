@@ -1,12 +1,14 @@
 import { Skeleton } from "@ctl/ui/components/skeleton";
 import { cn } from "@ctl/ui/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { BookOpen, Cpu, TerminalSquare, TestTube } from "lucide-react";
 import { useEffect } from "react";
+import { match } from "ts-pattern";
 
-import { useLesson } from "@/features/courses";
+import { useCompleteLesson, useLesson } from "@/features/courses";
 import {
 	AiFeedbackPanel,
+	ChainOfThought,
 	CodeEditor,
 	ConsoleOutput,
 	TaskDescription,
@@ -14,7 +16,7 @@ import {
 	TestResults,
 	useRunCode,
 	useRunTests,
-	useSubmit,
+	useSubmitStream,
 	useTask,
 	useTaskWorkspace,
 } from "@/features/tasks";
@@ -79,13 +81,38 @@ const ErrorState = ({
 	</div>
 );
 
-type WorkspaceInnerProps = Props & { lessonId: string };
+type WorkspaceInnerProps = Props & {
+	lessonId: string;
+	isLessonCompleted: boolean;
+	nextLessonSlug: string | null;
+};
 
 const WorkspaceInner = ({
 	courseSlug,
 	lessonSlug,
 	lessonId,
+	isLessonCompleted,
+	nextLessonSlug,
 }: WorkspaceInnerProps) => {
+	const navigate = useNavigate();
+	const { mutate: completeLesson, isPending: isCompletingLesson } =
+		useCompleteLesson(courseSlug, lessonSlug);
+
+	const onNextLesson = () => {
+		const destination = nextLessonSlug
+			? ({
+					to: "/courses/$slug/lessons/$lessonSlug",
+					params: { slug: courseSlug, lessonSlug: nextLessonSlug },
+				} as const)
+			: ({ to: "/courses/$slug", params: { slug: courseSlug } } as const);
+
+		if (isLessonCompleted) {
+			navigate(destination);
+		} else {
+			completeLesson(lessonId, { onSuccess: () => navigate(destination) });
+		}
+	};
+
 	const { data, isPending, isError } = useTask(lessonId);
 	const {
 		code,
@@ -104,7 +131,11 @@ const WorkspaceInner = ({
 
 	const runCode = useRunCode(data?.task.languageId ?? "javascript");
 	const runTests = useRunTests();
-	const submitTask = useSubmit(lessonId);
+	const {
+		submit: submitStream,
+		steps: gradeSteps,
+		isStreaming,
+	} = useSubmitStream(lessonId);
 
 	useEffect(() => {
 		if (!data) {
@@ -139,21 +170,29 @@ const WorkspaceInner = ({
 	const currentSubmission = submission ?? data.submission;
 	const isReadOnly = !!currentSubmission?.testsPassed;
 	const hasAiFeedback = !!currentSubmission?.aiFeedback;
+	const allTestsPassed =
+		testResults.length > 0 && testResults.every((r) => r.passed);
 
 	const onRun = () => runCode.mutate({ taskId: task.id, code });
 	const onRunTests = () => runTests.mutate({ taskId: task.id, code });
-	const onSubmit = () => submitTask.mutate({ taskId: task.id, code });
+	const onSubmit = () => {
+		setActiveTab("results");
+		submitStream({ taskId: task.id, code });
+	};
 
 	return (
 		<div className="flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden bg-muted/10">
 			<TaskToolbar
+				allTestsPassed={allTestsPassed}
 				courseSlug={courseSlug}
+				isCompletingLesson={isCompletingLesson}
 				isReadOnly={isReadOnly}
 				isRunning={isRunning}
 				isSubmitting={isSubmitting}
 				isTestingAll={isTestingAll}
 				languageId={task.languageId}
 				lessonSlug={lessonSlug}
+				onNextLesson={onNextLesson}
 				onRun={onRun}
 				onRunTests={onRunTests}
 				onSubmit={onSubmit}
@@ -226,14 +265,26 @@ const WorkspaceInner = ({
 						)}
 						{activeTab === "results" && (
 							<div className="flex flex-1 flex-col overflow-hidden">
-								{currentSubmission?.aiFeedback ? (
-									<AiFeedbackPanel
-										criteria={task.criteria}
-										feedback={currentSubmission.aiFeedback}
-									/>
-								) : (
-									<TestResults results={testResults} />
-								)}
+								{match({
+									streaming: isStreaming && gradeSteps.length > 0,
+									feedback: currentSubmission?.aiFeedback ?? null,
+								})
+									.with({ streaming: true }, () => (
+										<ChainOfThought steps={gradeSteps} />
+									))
+									.when(
+										(s) => s.feedback !== null,
+										(s) => (
+											<AiFeedbackPanel
+												criteria={task.criteria}
+												// biome-ignore lint/style/noNonNullAssertion: guarded by .when()
+												feedback={s.feedback!}
+											/>
+										)
+									)
+									.otherwise(() => (
+										<TestResults results={testResults} />
+									))}
 							</div>
 						)}
 					</div>
@@ -275,8 +326,10 @@ export const TaskWorkspaceView = ({ courseSlug, lessonSlug }: Props) => {
 	return (
 		<WorkspaceInner
 			courseSlug={courseSlug}
+			isLessonCompleted={lesson.isCompleted}
 			lessonId={lesson.id}
 			lessonSlug={lessonSlug}
+			nextLessonSlug={lesson.nextLesson?.slug ?? null}
 		/>
 	);
 };

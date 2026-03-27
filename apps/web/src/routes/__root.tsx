@@ -12,7 +12,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import type { orpc } from "@/shared/api";
 import { ThemeProvider } from "@/shared/providers";
-import { Header } from "@/shared/ui";
+import { DialogRenderer, Header } from "@/shared/ui";
 
 import appCss from "../index.css?url";
 
@@ -54,6 +54,7 @@ function RootDocument() {
 						{!isAuthRoute && <Header />}
 						<Outlet />
 					</div>
+					<DialogRenderer />
 					<Toaster richColors />
 				</ThemeProvider>
 				<TanStackRouterDevtools position="bottom-left" />

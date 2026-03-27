@@ -87,10 +87,6 @@ const runInContainer = async (
 
 	await container.start();
 
-	const timeoutPromise = new Promise<never>((_, reject) =>
-		setTimeout(() => reject(new Error("Execution timed out")), timeoutMs)
-	);
-
 	const logStream = await container.logs({
 		stdout: true,
 		stderr: true,
@@ -117,7 +113,20 @@ const runInContainer = async (
 		(logStream as NodeJS.ReadableStream).on("end", resolve);
 	});
 
-	await Promise.race([logsPromise, timeoutPromise]);
+	let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+
+	const timeoutPromise = new Promise<never>((_, reject) => {
+		timeoutHandle = setTimeout(() => {
+			container.kill().catch(() => undefined);
+			reject(new Error("Execution timed out"));
+		}, timeoutMs);
+	});
+
+	try {
+		await Promise.race([logsPromise, timeoutPromise]);
+	} finally {
+		clearTimeout(timeoutHandle);
+	}
 
 	const { StatusCode: exitCode } = await container.wait();
 

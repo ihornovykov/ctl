@@ -3,12 +3,15 @@ import { cn } from "@ctl/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import {
 	ArrowLeft,
-	ChevronRight,
+	ArrowRight,
 	FlaskConical,
 	Loader2,
+	LockKeyhole,
 	Play,
 	Send,
 } from "lucide-react";
+
+import { dialogs } from "@/shared/stores";
 
 const LANGUAGE_DISPLAY: Record<string, { label: string; color: string }> = {
 	javascript: {
@@ -51,9 +54,12 @@ type Props = {
 	isRunning: boolean;
 	isTestingAll: boolean;
 	isSubmitting: boolean;
+	isCompletingLesson: boolean;
+	allTestsPassed: boolean;
 	onRun: () => void;
 	onRunTests: () => void;
 	onSubmit: () => void;
+	onNextLesson: () => void;
 };
 
 export const TaskToolbar = ({
@@ -64,15 +70,44 @@ export const TaskToolbar = ({
 	isRunning,
 	isTestingAll,
 	isSubmitting,
+	isCompletingLesson,
+	allTestsPassed,
 	onRun,
 	onRunTests,
 	onSubmit,
+	onNextLesson,
 }: Props) => {
 	const lang = LANGUAGE_DISPLAY[languageId] ?? {
 		label: languageId.toUpperCase(),
 		color: "bg-muted text-muted-foreground border border-border",
 	};
 	const isWorking = isRunning || isTestingAll || isSubmitting;
+
+	const onSubmitClick = () => {
+		dialogs.open({
+			title: "Submit your solution?",
+			titleIcon: <LockKeyhole className="text-amber-500" />,
+			description:
+				"Once submitted, your code will be locked and sent for grading. You won't be able to make any further changes.",
+			buttons: [
+				{
+					text: "Cancel",
+					variant: "secondary",
+					onClick: () => dialogs.close(),
+				},
+				{
+					text: "Submit",
+					icon: <Send className="size-4" />,
+					loading: isSubmitting,
+					variant: "primary",
+					onClick: () => {
+						dialogs.close();
+						onSubmit();
+					},
+				},
+			],
+		});
+	};
 
 	return (
 		<div className="flex h-14 shrink-0 items-center gap-4 border-border/40 border-b bg-background px-5">
@@ -98,55 +133,51 @@ export const TaskToolbar = ({
 
 			<div className="ml-auto flex items-center gap-2.5">
 				{isReadOnly ? (
-					<Link
-						className="flex h-9 items-center gap-2 rounded-lg bg-primary px-4 font-semibold text-primary-foreground text-sm transition-opacity hover:opacity-90"
-						params={{ slug: courseSlug, lessonSlug }}
-						to="/courses/$slug/lessons/$lessonSlug"
+					<Button
+						className="h-9 gap-2 text-sm"
+						disabled={isCompletingLesson}
+						onClick={onNextLesson}
+						size="sm"
 					>
+						{isCompletingLesson ? (
+							<Loader2 className="size-4 animate-spin" />
+						) : (
+							<ArrowRight className="size-4" />
+						)}
 						Next Lesson
-						<ChevronRight className="size-4" />
-					</Link>
+					</Button>
 				) : (
 					<>
 						<Button
 							className="h-9 gap-2 text-sm"
 							disabled={isWorking}
+							loading={isRunning}
 							onClick={onRun}
 							size="sm"
 							variant="outline"
 						>
-							{isRunning ? (
-								<Loader2 className="size-4 animate-spin" />
-							) : (
-								<Play className="size-4" />
-							)}
+							<Play className="size-4" />
 							Run
 						</Button>
 						<Button
 							className="h-9 gap-2 text-sm"
 							disabled={isWorking}
+							loading={isTestingAll}
 							onClick={onRunTests}
 							size="sm"
 							variant="outline"
 						>
-							{isTestingAll ? (
-								<Loader2 className="size-4 animate-spin" />
-							) : (
-								<FlaskConical className="size-4" />
-							)}
+							<FlaskConical className="size-4" />
 							Test
 						</Button>
 						<Button
 							className="h-9 gap-2 text-sm"
-							disabled={isWorking}
-							onClick={onSubmit}
+							disabled={isWorking || !allTestsPassed}
+							loading={isSubmitting}
+							onClick={onSubmitClick}
 							size="sm"
 						>
-							{isSubmitting ? (
-								<Loader2 className="size-4 animate-spin" />
-							) : (
-								<Send className="size-4" />
-							)}
+							<Send className="size-4" />
 							Submit
 						</Button>
 					</>
