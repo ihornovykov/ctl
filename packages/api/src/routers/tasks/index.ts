@@ -1,7 +1,6 @@
-import { db, submission, task } from "@ctl/db";
+import { and, db, eq, submission, task } from "@ctl/db";
 import { env } from "@ctl/env/server";
 import { ORPCError } from "@orpc/server";
-import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import { protectedProcedure } from "../../index";
@@ -77,10 +76,7 @@ export const tasksRouter = {
 				with: {
 					tests: { columns: { id: true } },
 					criteria: {
-						orderBy: (
-							c: { sortOrder: number },
-							{ asc }: { asc: (col: unknown) => unknown }
-						) => asc(c.sortOrder),
+						orderBy: (c, { asc }) => asc(c.sortOrder),
 					},
 				},
 			})) as TaskRow | undefined;
@@ -154,10 +150,7 @@ export const tasksRouter = {
 				where: eq(task.id, taskId),
 				with: {
 					tests: {
-						orderBy: (
-							t: { sortOrder: number },
-							{ asc }: { asc: (col: unknown) => unknown }
-						) => asc(t.sortOrder),
+						orderBy: (t, { asc }) => asc(t.sortOrder),
 					},
 				},
 			})) as TaskRow | undefined;
@@ -195,16 +188,10 @@ export const tasksRouter = {
 				where: eq(task.id, taskId),
 				with: {
 					tests: {
-						orderBy: (
-							t: { sortOrder: number },
-							{ asc }: { asc: (col: unknown) => unknown }
-						) => asc(t.sortOrder),
+						orderBy: (t, { asc }) => asc(t.sortOrder),
 					},
 					criteria: {
-						orderBy: (
-							c: { sortOrder: number },
-							{ asc }: { asc: (col: unknown) => unknown }
-						) => asc(c.sortOrder),
+						orderBy: (c, { asc }) => asc(c.sortOrder),
 					},
 				},
 			})) as TaskRow | undefined;

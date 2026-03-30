@@ -1,5 +1,5 @@
 import { Button } from "@ctl/ui/components/button";
-import { Award, Loader2 } from "lucide-react";
+import { Award } from "lucide-react";
 import { useState } from "react";
 
 import { client } from "@/shared/api";
@@ -48,16 +48,13 @@ export const CertificateDownloadButton = ({
 		<Button
 			className={className}
 			disabled={isLoading}
+			icon={<Award className="size-4" />}
+			loading={isLoading}
 			onClick={onOpen}
 			size={size}
 			variant={variant}
 		>
-			{isLoading ? (
-				<Loader2 className="size-4 animate-spin" />
-			) : (
-				<Award className="size-4" />
-			)}
-			{isLoading ? "Loading…" : "View Certificate"}
+			View Certificate
 		</Button>
 	);
 };

@@ -23,7 +23,6 @@
     "better-auth": "catalog:",
     "dockerode": "^4.0.10",
     "dotenv": "catalog:",
-    "drizzle-orm": "^0.45.1",
     "nanoid": "^5.1.7",
     "zod": "catalog:"
   },

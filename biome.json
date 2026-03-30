@@ -57,7 +57,8 @@
         }
       },
       "performance": {
-        "noBarrelFile": "off"
+        "noBarrelFile": "off",
+        "noNamespaceImport": "off"
       },
       "style": {
         "useConsistentTypeDefinitions": "off",

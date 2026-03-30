@@ -1,6 +1,15 @@
-import { course, db, enrollment, lesson, lessonProgress, user } from "@ctl/db";
+import {
+	and,
+	course,
+	db,
+	enrollment,
+	eq,
+	inArray,
+	lesson,
+	lessonProgress,
+	user,
+} from "@ctl/db";
 import { ORPCError } from "@orpc/server";
-import { and, eq, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import { protectedProcedure, publicProcedure } from "../../index";

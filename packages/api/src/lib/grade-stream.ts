@@ -1,6 +1,5 @@
-import { db, submission, task } from "@ctl/db";
+import { and, db, eq, submission, task } from "@ctl/db";
 import { env } from "@ctl/env/server";
-import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import type { SubmissionOutput } from "../routers/tasks/validation";
@@ -80,16 +79,10 @@ export async function* streamGrade(input: {
 		where: eq(task.id, taskId),
 		with: {
 			tests: {
-				orderBy: (
-					t: { sortOrder: number },
-					{ asc }: { asc: (c: unknown) => unknown }
-				) => asc(t.sortOrder),
+				orderBy: (t, { asc }) => asc(t.sortOrder),
 			},
 			criteria: {
-				orderBy: (
-					c: { sortOrder: number },
-					{ asc }: { asc: (c: unknown) => unknown }
-				) => asc(c.sortOrder),
+				orderBy: (c, { asc }) => asc(c.sortOrder),
 			},
 		},
 	})) as TaskRow | undefined;
