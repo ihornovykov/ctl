@@ -38,6 +38,10 @@ export const UserMenu = () => {
 	const { user } = session;
 	const initials = getInitials(user.name || user.email);
 
+	const handleProfileClick = () => {
+		navigate({ to: "/dashboard" });
+	};
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -79,7 +83,7 @@ export const UserMenu = () => {
 				<DropdownMenuSeparator />
 
 				<DropdownMenuGroup>
-					<DropdownMenuItem>
+					<DropdownMenuItem onClick={handleProfileClick}>
 						<User />
 						Profile
 					</DropdownMenuItem>

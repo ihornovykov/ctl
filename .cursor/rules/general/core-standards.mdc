@@ -52,3 +52,4 @@ alwaysApply: true
 ## Control flow
 
 - Use early returns and guard clauses to avoid deep nesting.
+- Don't use comments in code.

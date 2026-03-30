@@ -1,10 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { orpc } from "@/shared/api";
+
 import { getUser } from "@/shared/lib";
+import { DashboardView } from "@/views/dashboard";
 
 export const Route = createFileRoute("/dashboard")({
-	component: RouteComponent,
+	component: DashboardView,
 	beforeLoad: async () => {
 		const session = await getUser();
 		return { session };
@@ -17,17 +17,3 @@ export const Route = createFileRoute("/dashboard")({
 		}
 	},
 });
-
-function RouteComponent() {
-	const { session } = Route.useRouteContext();
-
-	const privateData = useQuery(orpc.privateData.queryOptions());
-
-	return (
-		<div>
-			<h1>Dashboard</h1>
-			<p>Welcome {session?.user.name}</p>
-			<p>API: {privateData.data?.message}</p>
-		</div>
-	);
-}

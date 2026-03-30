@@ -1,12 +1,14 @@
-import { course, db, enrollment, lesson, lessonProgress } from "@ctl/db";
+import { course, db, enrollment, lesson, lessonProgress, user } from "@ctl/db";
 import { ORPCError } from "@orpc/server";
 import { and, eq, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import { protectedProcedure, publicProcedure } from "../../index";
 import {
+	type Certificate,
 	type CourseDetail,
 	type CourseListOutput,
+	certificateSchema,
 	completeLessonInput,
 	courseDetailSchema,
 	courseSchema,
@@ -385,5 +387,84 @@ export const coursesRouter = {
 				.onConflictDoNothing();
 
 			return { success: true };
+		}),
+
+	getCertificate: protectedProcedure
+		.input(courseSlugInput)
+		.output(certificateSchema)
+		.handler(async ({ input, context }): Promise<Certificate> => {
+			const userId = context.session.user.id;
+
+			const courseRow = await db.query.course.findFirst({
+				where: eq(course.slug, input.slug),
+				with: {
+					language: true,
+					lessons: { columns: { id: true } },
+				},
+			});
+
+			if (!courseRow) {
+				throw new ORPCError("NOT_FOUND", { message: "Course not found" });
+			}
+
+			const enrollmentRow = await db.query.enrollment.findFirst({
+				where: and(
+					eq(enrollment.userId, userId),
+					eq(enrollment.courseId, courseRow.id)
+				),
+				columns: { id: true },
+			});
+
+			if (!enrollmentRow) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "You must enroll in this course first",
+				});
+			}
+
+			const lessonIds = courseRow.lessons.map((l) => l.id);
+
+			if (lessonIds.length === 0) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "This course has no lessons",
+				});
+			}
+
+			const progressRows = await db.query.lessonProgress.findMany({
+				where: and(
+					eq(lessonProgress.userId, userId),
+					inArray(lessonProgress.lessonId, lessonIds)
+				),
+				orderBy: (lp, { desc }) => desc(lp.completedAt),
+			});
+
+			if (progressRows.length < lessonIds.length) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "You have not completed all lessons in this course",
+				});
+			}
+
+			const userRow = await db.query.user.findFirst({
+				where: eq(user.id, userId),
+				columns: { name: true },
+			});
+
+			const completedAt = progressRows[0]?.completedAt ?? new Date();
+			const certificateId = Buffer.from(`${userId}:${courseRow.id}`)
+				.toString("base64")
+				.replace(/[^a-zA-Z0-9]/g, "")
+				.slice(0, 16)
+				.toUpperCase();
+
+			return {
+				certificateId,
+				userName: userRow?.name ?? "Student",
+				courseTitle: courseRow.title,
+				languageId: courseRow.language.id,
+				languageName: courseRow.language.name,
+				languageIcon: courseRow.language.icon,
+				difficulty: courseRow.difficulty,
+				estimatedHours: courseRow.estimatedHours,
+				completedAt,
+			};
 		}),
 };

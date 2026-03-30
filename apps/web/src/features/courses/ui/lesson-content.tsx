@@ -160,7 +160,11 @@ export const LessonContent = ({ lesson, courseSlug }: Props) => {
 						style={{ animationDelay: "160ms" }}
 					>
 						{lesson.hasTask ? (
-							<TaskCallout courseSlug={courseSlug} lessonSlug={lesson.slug} />
+							<TaskCallout
+								courseSlug={courseSlug}
+								isCompleted={lesson.isCompleted}
+								lessonSlug={lesson.slug}
+							/>
 						) : (
 							<ScrollSentinel
 								isCompleted={lesson.isCompleted}
@@ -178,36 +182,72 @@ export const LessonContent = ({ lesson, courseSlug }: Props) => {
 	);
 };
 
+type TaskCalloutProps = {
+	courseSlug: string;
+	lessonSlug: string;
+	isCompleted: boolean;
+};
+
 const TaskCallout = ({
 	courseSlug,
 	lessonSlug,
-}: {
-	courseSlug: string;
-	lessonSlug: string;
-}) => (
-	<div className="mb-8 overflow-hidden rounded-2xl border border-primary/30 bg-primary/5">
+	isCompleted,
+}: TaskCalloutProps) => (
+	<div
+		className={cn(
+			"mb-8 overflow-hidden rounded-2xl border transition-colors duration-300",
+			isCompleted
+				? "border-emerald-500/30 bg-emerald-500/5"
+				: "border-primary/30 bg-primary/5"
+		)}
+	>
 		<div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
 			<div className="flex items-start gap-4">
-				<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-					<Code2 className="size-5 text-primary" />
+				<div
+					className={cn(
+						"flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-300",
+						isCompleted ? "bg-emerald-500/15" : "bg-primary/15"
+					)}
+				>
+					{isCompleted ? (
+						<CheckCircle2 className="size-5 text-emerald-500" />
+					) : (
+						<Code2 className="size-5 text-primary" />
+					)}
 				</div>
 				<div>
 					<h3 className="font-semibold text-foreground text-sm">
-						Ready to practice?
+						{isCompleted ? "Task completed!" : "Ready to practice?"}
 					</h3>
 					<p className="mt-1 text-muted-foreground text-sm">
-						This lesson has a coding task. Put your knowledge to the test and
-						get AI-powered feedback on your solution.
+						{isCompleted
+							? "Great job! You've successfully completed the coding task for this lesson."
+							: "This lesson has a coding task. Put your knowledge to the test and get AI-powered feedback on your solution."}
 					</p>
 				</div>
 			</div>
 			<Link
-				className={cn(buttonVariants({ size: "lg" }), "shrink-0 gap-2")}
+				className={cn(
+					buttonVariants({
+						size: "lg",
+						variant: isCompleted ? "outline" : "default",
+					}),
+					"shrink-0 gap-2"
+				)}
 				params={{ slug: courseSlug, lessonSlug }}
 				to="/courses/$slug/lessons/$lessonSlug/task"
 			>
-				Start Task
-				<ChevronRight className="size-4" />
+				{isCompleted ? (
+					<>
+						<CheckCircle2 className="size-4 text-emerald-500" />
+						View Solution
+					</>
+				) : (
+					<>
+						Start Task
+						<ChevronRight className="size-4" />
+					</>
+				)}
 			</Link>
 		</div>
 	</div>
@@ -316,8 +356,7 @@ const LessonNavigation = ({
 				className={cn(
 					"group flex items-center justify-end gap-3 rounded-xl border border-border/50 bg-card/80 p-4 transition-all duration-200",
 					"max-w-[48%] flex-1 hover:border-border hover:shadow-black/5 hover:shadow-md",
-					!(lesson.isCompleted || lesson.hasTask) &&
-						"pointer-events-none opacity-50"
+					!lesson.isCompleted && "pointer-events-none opacity-50"
 				)}
 				params={{ slug: courseSlug, lessonSlug: lesson.nextLesson.slug }}
 				to="/courses/$slug/lessons/$lessonSlug"

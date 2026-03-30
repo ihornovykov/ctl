@@ -82,6 +82,18 @@ export const lessonDetailSchema = z.object({
 	nextLesson: lessonNavSchema,
 });
 
+export const certificateSchema = z.object({
+	certificateId: z.string(),
+	userName: z.string(),
+	courseTitle: z.string(),
+	languageId: z.string(),
+	languageName: z.string(),
+	languageIcon: z.string().nullable(),
+	difficulty: z.string(),
+	estimatedHours: z.number(),
+	completedAt: z.date(),
+});
+
 export type CourseListItem = z.infer<typeof courseSchema>;
 export type CourseListOutput = CourseListItem[];
 export type LessonItem = z.infer<typeof lessonSchema>;
@@ -92,3 +104,4 @@ export type CompleteLessonInput = z.infer<typeof completeLessonInput>;
 export type LessonSlugInput = z.infer<typeof lessonSlugInput>;
 export type LessonNav = z.infer<typeof lessonNavSchema>;
 export type LessonDetail = z.infer<typeof lessonDetailSchema>;
+export type Certificate = z.infer<typeof certificateSchema>;

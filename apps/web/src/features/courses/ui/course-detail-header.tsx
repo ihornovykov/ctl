@@ -13,6 +13,8 @@ import {
 	Zap,
 } from "lucide-react";
 
+import { CertificateDownloadButton } from "@/features/certificate";
+
 const DIFFICULTY_CONFIG: Record<
 	string,
 	{ label: string; className: string; icon: typeof Zap }
@@ -222,6 +224,15 @@ export const CourseDetailHeader = ({
 								<p className="text-muted-foreground text-xs">
 									{progressPct}% complete
 								</p>
+								{course.completedLessons === course.totalLessons &&
+									course.totalLessons > 0 && (
+										<div className="pt-1">
+											<CertificateDownloadButton
+												courseSlug={course.slug}
+												variant="outline"
+											/>
+										</div>
+									)}
 							</div>
 						) : (
 							<div className="flex flex-col gap-3">
