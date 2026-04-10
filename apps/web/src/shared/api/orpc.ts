@@ -10,7 +10,8 @@ import { toast } from "sonner";
 export const queryClient = new QueryClient({
 	queryCache: new QueryCache({
 		onError: (error, query) => {
-			toast.error(`Error: ${error.message}`, {
+			const message = error instanceof Error ? error.message : String(error);
+			toast.error(`Error: ${message}`, {
 				action: {
 					label: "retry",
 					onClick: query.invalidate,

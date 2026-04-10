@@ -19,7 +19,7 @@ function LessonLayout() {
 	});
 
 	return (
-		<div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+		<div className="flex h-[calc(100vh-3.5rem)] min-h-0 overflow-hidden">
 			{!isTask && (
 				<>
 					<div className="hidden lg:flex">
@@ -37,7 +37,7 @@ function LessonLayout() {
 				</>
 			)}
 
-			<div className="flex min-w-0 flex-1 overflow-hidden">
+			<div className="flex h-full min-h-0 min-w-0 flex-1 overflow-hidden">
 				<Outlet />
 			</div>
 		</div>

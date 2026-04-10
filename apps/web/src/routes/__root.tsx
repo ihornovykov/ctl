@@ -11,9 +11,9 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import type { orpc } from "@/shared/api";
+import { PROJECT_NAME } from "@/shared/constants";
 import { ThemeProvider } from "@/shared/providers";
 import { DialogRenderer, Header } from "@/shared/ui";
-
 import appCss from "../index.css?url";
 
 // Runs before React hydrates to prevent flash of wrong theme.
@@ -29,9 +29,17 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 		meta: [
 			{ charSet: "utf-8" },
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
-			{ title: "CodeLearn — Master Programming with AI" },
+			{ title: PROJECT_NAME },
+
+			{
+				name: "description",
+				content: "CodeLearn is a platform for learning programming with AI",
+			},
 		],
-		links: [{ rel: "stylesheet", href: appCss }],
+		links: [
+			{ rel: "stylesheet", href: appCss },
+			{ rel: "icon", href: "/icons/favicon.ico", type: "image/x-icon" },
+		],
 	}),
 
 	component: RootDocument,

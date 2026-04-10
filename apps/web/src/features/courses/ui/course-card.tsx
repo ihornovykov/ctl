@@ -59,6 +59,12 @@ const LANG_ACCENT: Record<
 		ring: "group-hover:ring-violet-500/40",
 		glow: "bg-violet-500/20",
 	},
+	react: {
+		from: "from-sky-500/20",
+		via: "via-cyan-400/10",
+		ring: "group-hover:ring-sky-500/40",
+		glow: "bg-sky-500/20",
+	},
 };
 
 const DEFAULT_ACCENT = {

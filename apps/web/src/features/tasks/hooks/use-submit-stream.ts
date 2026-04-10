@@ -140,7 +140,9 @@ export const useSubmitStream = (lessonId: string) => {
 						});
 					}
 					queryClient.invalidateQueries({
-						queryKey: orpc.tasks.getByLessonId.key({ input: { lessonId } }),
+						queryKey: orpc.tasks.getByLessonId.key({
+							input: { lessonId },
+						}),
 					});
 				},
 			};

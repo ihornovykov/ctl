@@ -34,7 +34,7 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
-const TaskWorkspaceSkeleton = () => (
+export const TaskWorkspaceSkeleton = () => (
 	<div className="flex h-full w-full flex-col bg-muted/10">
 		<div className="flex h-14 items-center gap-4 border-border/40 border-b bg-background px-5">
 			<Skeleton className="h-4 w-16" />
@@ -198,7 +198,7 @@ const WorkspaceInner = ({
 				onSubmit={onSubmit}
 			/>
 
-			<div className="flex flex-1 gap-3 overflow-hidden p-3 pt-2">
+			<div className="flex flex-1 gap-3 overflow-hidden p-3 pt-2 pl-1">
 				{/* Editor card */}
 				<div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/40 bg-background shadow-sm">
 					<CodeEditor

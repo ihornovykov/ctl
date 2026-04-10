@@ -1,0 +1,4 @@
+.sandbox-monaco-editor--dark
+	:is(.monaco-editor .monaco-editor-background, .monaco-editor .margin) {
+	background-color: #15191d !important;
+}

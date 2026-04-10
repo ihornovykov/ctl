@@ -4,9 +4,13 @@ import { AlertCircle, CheckCircle2, FlaskConical, XCircle } from "lucide-react";
 
 type Props = {
 	results: TestResult[];
+	emptyHint?: string;
 };
 
-export const TestResults = ({ results }: Props) => {
+export const TestResults = ({
+	results,
+	emptyHint = "Click Test or Submit to run all tests",
+}: Props) => {
 	if (results.length === 0) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
@@ -15,9 +19,7 @@ export const TestResults = ({ results }: Props) => {
 				</div>
 				<div>
 					<p className="font-semibold text-foreground text-sm">No tests run</p>
-					<p className="mt-1 text-muted-foreground text-xs">
-						Click Test or Submit to run all tests
-					</p>
+					<p className="mt-1 text-muted-foreground text-xs">{emptyHint}</p>
 				</div>
 			</div>
 		);

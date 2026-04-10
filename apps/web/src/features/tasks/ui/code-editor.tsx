@@ -1,16 +1,27 @@
-import MonacoEditor, { type BeforeMount } from "@monaco-editor/react";
-import { useEffect, useState } from "react";
+import { cn } from "@ctl/ui/lib/utils";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import { useTheme } from "@/shared/providers";
 
-import { githubDarkTheme, githubLightTheme } from "../lib/editor-themes";
+import "@/features/sandbox/ui/sandbox-code-editor.css";
+import {
+	applySandboxEditorTheme,
+	getSandboxMonaco,
+	type SandboxMonaco,
+} from "@/features/sandbox/lib/sandbox-monaco";
 
-const THEME_DARK = "github-dark";
-const THEME_LIGHT = "github-light";
+const TASK_EDITOR_SURFACE = "#15191d";
+const TASK_EDITOR_FONT_WEIGHT = "500";
 
-const handleBeforeMount: BeforeMount = (monaco) => {
-	monaco.editor.defineTheme(THEME_DARK, githubDarkTheme);
-	monaco.editor.defineTheme(THEME_LIGHT, githubLightTheme);
+const LANGUAGE_TO_EXT: Record<string, string> = {
+	javascript: "js",
+	typescript: "ts",
+	tsx: "tsx",
+	jsx: "jsx",
+	python: "py",
+	go: "go",
+	c: "c",
+	cpp: "cpp",
 };
 
 type Props = {
@@ -18,6 +29,8 @@ type Props = {
 	onChange?: (value: string) => void;
 	languageId: string;
 	readOnly?: boolean;
+	modelPath?: string;
+	syncValueFromProps?: boolean;
 };
 
 const useResolvedTheme = () => {
@@ -44,59 +57,211 @@ const useResolvedTheme = () => {
 	return isDark;
 };
 
+type EditorInstance = ReturnType<SandboxMonaco["editor"]["create"]>;
+
+const LEADING_SLASHES = /^\/+/;
+
+const TaskMonacoPane = ({
+	code,
+	languageId,
+	onChange,
+	readOnly = false,
+	modelPath,
+	isDark,
+	syncFromProps,
+}: Props & { isDark: boolean; syncFromProps: boolean }) => {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const editorRef = useRef<EditorInstance | null>(null);
+	const codeRef = useRef(code);
+	codeRef.current = code;
+	const onChangeRef = useRef(onChange);
+	onChangeRef.current = onChange;
+	const readOnlyRef = useRef(readOnly);
+	readOnlyRef.current = readOnly;
+
+	const [isLoading, setIsLoading] = useState(true);
+
+	const defaultPath = `task/solution.${LANGUAGE_TO_EXT[languageId] ?? "txt"}`;
+	const pathPart = (modelPath ?? defaultPath)
+		.replace(LEADING_SLASHES, "")
+		.replace(/\\/g, "/");
+	const filePath = pathPart.startsWith("/") ? pathPart : `/${pathPart}`;
+
+	useEffect(() => {
+		let alive = true;
+		getSandboxMonaco().then((m) => {
+			if (alive) {
+				applySandboxEditorTheme(m, isDark);
+			}
+		});
+		return () => {
+			alive = false;
+		};
+	}, [isDark]);
+
+	useEffect(() => {
+		editorRef.current?.updateOptions({
+			readOnly: !!readOnly,
+			fontWeight: TASK_EDITOR_FONT_WEIGHT,
+			cursorBlinking: readOnly ? "solid" : "blink",
+			renderLineHighlight: readOnly ? "none" : "line",
+		});
+	}, [readOnly]);
+
+	useEffect(() => {
+		const ed = editorRef.current;
+		if (!(ed && syncFromProps)) {
+			return;
+		}
+		if (ed.getValue() !== code) {
+			ed.setValue(code);
+		}
+	}, [code, syncFromProps]);
+
+	useEffect(() => {
+		const el = containerRef.current;
+		if (!el) {
+			return;
+		}
+
+		let disposed = false;
+		let contentSub: { dispose: () => void } | undefined;
+		let ro: ResizeObserver | undefined;
+		let model: ReturnType<SandboxMonaco["editor"]["createModel"]> | null = null;
+		let editor: EditorInstance | null = null;
+
+		setIsLoading(true);
+
+		(async () => {
+			const monaco = await getSandboxMonaco();
+			if (disposed || !containerRef.current) {
+				return;
+			}
+
+			applySandboxEditorTheme(monaco, isDark);
+
+			const uri = monaco.Uri.parse(`file://${filePath}`);
+
+			const initialCode = codeRef.current;
+			model = monaco.editor.createModel(initialCode, languageId, uri);
+			editor = monaco.editor.create(containerRef.current, {
+				model,
+				readOnly: !!readOnly,
+				fontSize: 13.5,
+				fontWeight: TASK_EDITOR_FONT_WEIGHT,
+				fontFamily:
+					"'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', monospace",
+				fontLigatures: true,
+				lineNumbers: "on",
+				minimap: { enabled: false },
+				scrollBeyondLastLine: false,
+				wordWrap: "on",
+				tabSize: 2,
+				renderLineHighlight: readOnly ? "none" : "line",
+				cursorBlinking: readOnly ? "solid" : "blink",
+				smoothScrolling: true,
+				padding: { top: 16, bottom: 16 },
+				scrollbar: {
+					verticalScrollbarSize: 6,
+					horizontalScrollbarSize: 6,
+				},
+				overviewRulerBorder: false,
+				renderWhitespace: "none",
+				fixedOverflowWidgets: true,
+			});
+
+			editorRef.current = editor;
+			const latest = codeRef.current;
+			if (editor.getValue() !== latest) {
+				editor.setValue(latest);
+			}
+			setIsLoading(false);
+
+			const ed = editor;
+			contentSub = ed.onDidChangeModelContent(() => {
+				if (!readOnlyRef.current && onChangeRef.current) {
+					onChangeRef.current(ed.getValue());
+				}
+			});
+
+			ro = new ResizeObserver(() => ed.layout());
+			ro.observe(el);
+		})();
+
+		return () => {
+			disposed = true;
+			setIsLoading(true);
+			ro?.disconnect();
+			contentSub?.dispose();
+			model?.dispose();
+			editor?.dispose();
+			editorRef.current = null;
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	return (
+		<div
+			className={cn(
+				"relative h-full min-h-0 w-full",
+				isDark && "sandbox-monaco-editor--dark"
+			)}
+			ref={containerRef}
+		>
+			{isLoading ? (
+				<div
+					aria-hidden
+					className={cn("absolute inset-0 z-10", !isDark && "bg-background/80")}
+					style={
+						isDark
+							? ({
+									backgroundColor: `${TASK_EDITOR_SURFACE}e0`,
+								} satisfies CSSProperties)
+							: undefined
+					}
+				/>
+			) : null}
+		</div>
+	);
+};
+
+const filePathForKey = (modelPath: string | undefined, languageId: string) => {
+	const defaultPath = `task/solution.${LANGUAGE_TO_EXT[languageId] ?? "txt"}`;
+	return (modelPath ?? defaultPath).replace(LEADING_SLASHES, "");
+};
+
 export const CodeEditor = ({
 	code,
 	onChange,
 	languageId,
 	readOnly = false,
+	modelPath,
+	syncValueFromProps = true,
 }: Props) => {
 	const isDark = useResolvedTheme();
-	const theme = isDark ? THEME_DARK : THEME_LIGHT;
+	const syncFromProps = readOnly || syncValueFromProps;
+	const paneKey = `${languageId}:${filePathForKey(modelPath, languageId)}`;
 
 	return (
 		<div className="flex h-full flex-col overflow-hidden">
-			{readOnly && (
+			{readOnly ? (
 				<div className="flex items-center gap-2 border-border/50 border-b bg-amber-500/5 px-4 py-1.5">
 					<div className="size-1.5 rounded-full bg-amber-500" />
 					<span className="text-amber-600 text-xs dark:text-amber-400">
 						Read-only — submission locked
 					</span>
 				</div>
-			)}
-			<div className="flex-1 overflow-hidden">
-				<MonacoEditor
-					beforeMount={handleBeforeMount}
-					height="100%"
-					language={languageId}
-					onChange={(val) => {
-						if (!readOnly && onChange) {
-							onChange(val ?? "");
-						}
-					}}
-					options={{
-						fontSize: 13.5,
-						fontFamily:
-							"'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', monospace",
-						fontLigatures: true,
-						lineNumbers: "on",
-						minimap: { enabled: false },
-						scrollBeyondLastLine: false,
-						wordWrap: "on",
-						tabSize: 2,
-						readOnly,
-						renderLineHighlight: readOnly ? "none" : "line",
-						cursorBlinking: readOnly ? "solid" : "blink",
-						smoothScrolling: true,
-						padding: { top: 16, bottom: 16 },
-						scrollbar: {
-							verticalScrollbarSize: 6,
-							horizontalScrollbarSize: 6,
-						},
-						overviewRulerBorder: false,
-						renderWhitespace: "none",
-					}}
-					theme={theme}
-					value={code}
+			) : null}
+			<div className="min-h-0 flex-1 overflow-hidden">
+				<TaskMonacoPane
+					code={code}
+					isDark={isDark}
+					key={paneKey}
+					languageId={languageId}
+					modelPath={modelPath}
+					onChange={onChange}
+					readOnly={readOnly}
+					syncFromProps={syncFromProps}
 				/>
 			</div>
 		</div>

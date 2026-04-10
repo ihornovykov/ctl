@@ -91,6 +91,13 @@ const LANG_ACCENT: Record<
 		progressColor: "bg-violet-500",
 		ring: "ring-violet-500/20",
 	},
+	react: {
+		from: "from-sky-500/25",
+		via: "via-cyan-400/15",
+		glow: "bg-sky-500/30",
+		progressColor: "bg-sky-500",
+		ring: "ring-sky-500/20",
+	},
 };
 
 const DEFAULT_ACCENT = {

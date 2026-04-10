@@ -4,4 +4,5 @@ export * from "./header";
 export * from "./loader";
 export * from "./markdown-renderer";
 export * from "./password-input";
+export * from "./project-logo";
 export * from "./theme-toggle";
