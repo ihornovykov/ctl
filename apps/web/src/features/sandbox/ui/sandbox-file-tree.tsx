@@ -5,18 +5,8 @@ import {
 	syncDataLoaderFeature,
 } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
-import {
-	IconBraces,
-	IconFile,
-	IconFileCode,
-	IconFileText,
-	IconFolder,
-	IconFolderOpen,
-	IconHtml,
-	IconPalette,
-} from "@tabler/icons-react";
 import { useEffect, useMemo } from "react";
-import type { SandboxTreeItemData } from "../lib/constants";
+import { SANDBOX_TREE_ICON, type SandboxTreeItemData } from "../lib/constants";
 import { listSandboxDirIds } from "../lib/utils";
 
 type TreeIconData = Pick<SandboxTreeItemData, "children" | "type">;
@@ -30,43 +20,50 @@ type Props = {
 
 const indent = 14;
 
+const TreeIconGlyph = ({ src }: { src: string }) => (
+	<img
+		alt=""
+		aria-hidden
+		className="pointer-events-none size-4 shrink-0 select-none object-contain"
+		decoding="async"
+		height={16}
+		src={src}
+		width={16}
+	/>
+);
+
 const getTreeFileIcon = (data: TreeIconData, isExpanded: boolean) => {
 	const isFolder = (data.children?.length ?? 0) > 0;
 	if (isFolder) {
-		return isExpanded ? (
-			<IconFolderOpen className="pointer-events-none size-4 text-amber-500" />
-		) : (
-			<IconFolder className="pointer-events-none size-4 text-amber-500" />
+		return (
+			<TreeIconGlyph
+				src={
+					isExpanded ? SANDBOX_TREE_ICON.folderOpen : SANDBOX_TREE_ICON.folder
+				}
+			/>
 		);
 	}
 
 	const t = data.type;
-	if (t === "tsx" || t === "ts" || t === "jsx" || t === "js") {
-		return (
-			<IconFileCode className="pointer-events-none size-4 text-blue-500" />
-		);
+	if (t === "ts" || t === "tsx" || t === "js" || t === "jsx" || t === "vue") {
+		return <TreeIconGlyph src={SANDBOX_TREE_ICON[t]} />;
+	}
+	if (t === "test") {
+		return <TreeIconGlyph src={SANDBOX_TREE_ICON.test} />;
 	}
 	if (t === "css") {
-		return (
-			<IconPalette className="pointer-events-none size-4 text-purple-500" />
-		);
+		return <TreeIconGlyph src={SANDBOX_TREE_ICON.css} />;
 	}
 	if (t === "json") {
-		return (
-			<IconBraces className="pointer-events-none size-4 text-yellow-500" />
-		);
+		return <TreeIconGlyph src={SANDBOX_TREE_ICON.json} />;
 	}
 	if (t === "md") {
-		return (
-			<IconFileText className="pointer-events-none size-4 text-muted-foreground" />
-		);
+		return <TreeIconGlyph src={SANDBOX_TREE_ICON.md} />;
 	}
 	if (t === "html") {
-		return <IconHtml className="pointer-events-none size-4 text-orange-500" />;
+		return <TreeIconGlyph src={SANDBOX_TREE_ICON.html} />;
 	}
-	return (
-		<IconFile className="pointer-events-none size-4 text-muted-foreground" />
-	);
+	return <TreeIconGlyph src={SANDBOX_TREE_ICON.config} />;
 };
 
 export const SandboxFileTree = ({
@@ -151,9 +148,15 @@ const patternDemoItems: Record<string, SandboxTreeItemData> = {
 	"button-tsx": { name: "button.tsx", type: "tsx" },
 	"card-tsx": { name: "card.tsx", type: "tsx" },
 	"dialog-tsx": { name: "dialog.tsx", type: "tsx" },
-	lib: { name: "lib", children: ["utils-ts", "api-ts"], type: "folder" },
+	lib: {
+		name: "lib",
+		children: ["utils-ts", "api-ts", "app-test-ts", "app-vue"],
+		type: "folder",
+	},
 	"utils-ts": { name: "utils.ts", type: "ts" },
 	"api-ts": { name: "api.ts", type: "ts" },
+	"app-test-ts": { name: "App.test.ts", type: "test" },
+	"app-vue": { name: "App.vue", type: "vue" },
 	"globals-css": { name: "globals.css", type: "css" },
 	public: { name: "public", children: ["favicon"], type: "folder" },
 	favicon: { name: "favicon.ico", type: "config" },

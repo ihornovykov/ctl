@@ -58,7 +58,15 @@ type TsApi = {
 
 const dirKey = (dirPath: string) => `dir:${dirPath}`;
 
+const testFileRe = /\.(test|spec)\.(m?tsx?|m?jsx?)$/i;
+
 const inferLeafType = (fileName: string): SandboxTreeItemData["type"] => {
+	if (testFileRe.test(fileName)) {
+		return "test";
+	}
+	if (fileName.endsWith(".vue")) {
+		return "vue";
+	}
 	if (fileName.endsWith(".tsx")) {
 		return "tsx";
 	}

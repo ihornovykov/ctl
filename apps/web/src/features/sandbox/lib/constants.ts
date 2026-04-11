@@ -84,11 +84,29 @@ export type SandboxTreeLeafType =
 	| "tsx"
 	| "jsx"
 	| "js"
+	| "vue"
+	| "test"
 	| "css"
 	| "json"
 	| "md"
 	| "html"
 	| "config";
+
+export const SANDBOX_TREE_ICON = {
+	folder: "/icons/catppuccin/_folder.svg",
+	folderOpen: "/icons/catppuccin/_folder_open.svg",
+	ts: "/icons/catppuccin/typescript.svg",
+	tsx: "/icons/catppuccin/typescript-react.svg",
+	js: "/icons/catppuccin/javascript.svg",
+	jsx: "/icons/catppuccin/javascript-react.svg",
+	vue: "/icons/catppuccin/vue.svg",
+	test: "/icons/catppuccin/vitest.svg",
+	json: "/icons/catppuccin/json.svg",
+	css: "/icons/catppuccin/css.svg",
+	html: "/icons/catppuccin/html.svg",
+	md: "/icons/catppuccin/markdown.svg",
+	config: "/icons/catppuccin/_file.svg",
+} as const;
 
 export type SandboxTreeItemData = {
 	name: string;

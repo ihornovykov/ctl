@@ -29,7 +29,6 @@ import { SandboxFileTree } from "./sandbox-file-tree";
 import { SandboxPreviewIframe } from "./sandbox-preview-iframe";
 import { SandboxPreviewStatus } from "./sandbox-preview-status";
 import { SandboxToolbar } from "./sandbox-toolbar";
-import "./sandbox-workspace.css";
 
 type SandboxPreviewPanelProps = {
 	html: string | null;
