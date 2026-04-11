@@ -10,6 +10,7 @@ export async function createContext(req: IncomingHttpHeaders) {
 	return {
 		auth: null,
 		session,
+		requestHeaders: req,
 	};
 }
 

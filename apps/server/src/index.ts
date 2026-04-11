@@ -17,8 +17,14 @@ import { registerPlaygroundPreviewProxy } from "./register-playground-preview";
 
 const baseCorsConfig = {
 	origin: env.CORS_ORIGIN,
-	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-	allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
+	allowedHeaders: [
+		"Content-Type",
+		"Authorization",
+		"X-Requested-With",
+		"b3",
+		"traceparent",
+	],
 	credentials: true,
 	maxAge: 86_400,
 };
@@ -46,6 +52,7 @@ const apiHandler = new OpenAPIHandler(appRouter, {
 
 const fastify = Fastify({
 	logger: true,
+	bodyLimit: 12 * 1024 * 1024,
 });
 
 fastify.register(fastifyCors, baseCorsConfig);

@@ -129,21 +129,23 @@ const LanguageStackedActivityChart = ({ data }: LanguageActivityProps) => {
 type LangProps = { enrollments: EnrollmentSummary[] };
 
 const LanguageDonut = ({ enrollments }: LangProps) => {
-	const counts = new Map<string, { id: string; name: string; count: number }>();
+	const byLang = new Map<string, { id: string; name: string; count: number }>();
 	for (const e of enrollments) {
-		const entry = counts.get(e.languageId) ?? {
+		const entry = byLang.get(e.languageId) ?? {
 			id: e.languageId,
 			name: e.languageName,
 			count: 0,
 		};
-		entry.count++;
-		counts.set(e.languageId, entry);
+		entry.count += e.completedLessons;
+		byLang.set(e.languageId, entry);
 	}
 
-	const data = [...counts.values()].map((l) => ({
-		...l,
-		fill: `var(--color-${l.id})`,
-	}));
+	const data = [...byLang.values()]
+		.filter((l) => l.count > 0)
+		.map((l) => ({
+			...l,
+			fill: `var(--color-${l.id})`,
+		}));
 
 	const chartConfig = Object.fromEntries(
 		data.map((l) => [
@@ -152,15 +154,31 @@ const LanguageDonut = ({ enrollments }: LangProps) => {
 		])
 	) satisfies ChartConfig;
 
+	if (enrollments.length === 0) {
+		return (
+			<Card className="flex flex-col">
+				<CardHeader className="pb-2">
+					<CardTitle className="font-semibold">Languages</CardTitle>
+					<CardDescription>Completed lessons by language</CardDescription>
+				</CardHeader>
+				<CardContent className="flex flex-1 items-center justify-center">
+					<p className="text-muted-foreground text-sm">No courses yet</p>
+				</CardContent>
+			</Card>
+		);
+	}
+
 	if (data.length === 0) {
 		return (
 			<Card className="flex flex-col">
 				<CardHeader className="pb-2">
 					<CardTitle className="font-semibold">Languages</CardTitle>
-					<CardDescription>By enrolled courses</CardDescription>
+					<CardDescription>Completed lessons by language</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-1 items-center justify-center">
-					<p className="text-muted-foreground text-sm">No courses yet</p>
+					<p className="text-muted-foreground text-sm">
+						No completed lessons yet
+					</p>
 				</CardContent>
 			</Card>
 		);
@@ -170,7 +188,7 @@ const LanguageDonut = ({ enrollments }: LangProps) => {
 		<Card className="flex flex-col">
 			<CardHeader className="pb-0">
 				<CardTitle className="font-semibold">Languages</CardTitle>
-				<CardDescription>By enrolled courses</CardDescription>
+				<CardDescription>Completed lessons by language</CardDescription>
 			</CardHeader>
 			<CardContent className="flex flex-1 flex-col items-center gap-4 pt-2 pb-4">
 				<ChartContainer
@@ -213,7 +231,7 @@ const LanguageDonut = ({ enrollments }: LangProps) => {
 								<span className="font-medium">{l.name}</span>
 							</div>
 							<span className="text-muted-foreground tabular-nums">
-								{l.count} {l.count === 1 ? "course" : "courses"}
+								{l.count} {l.count === 1 ? "lesson" : "lessons"}
 							</span>
 						</li>
 					))}

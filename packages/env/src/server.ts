@@ -10,6 +10,9 @@ export const env = createEnv({
 		CORS_ORIGIN: z.url(),
 		GOOGLE_CLIENT_ID: z.string().min(1),
 		GOOGLE_CLIENT_SECRET: z.string().min(1),
+		GITHUB_CLIENT_ID: z.string().min(1),
+		GITHUB_CLIENT_SECRET: z.string().min(1),
+		UPLOADTHING_TOKEN: z.string().min(1),
 		GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
 		PLAYGROUND_DOCKER_IMAGE: z.string().min(1).default("ctl-playground:latest"),
 		NODE_ENV: z

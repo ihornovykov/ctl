@@ -20,6 +20,7 @@ import { authClient, oauthCallbackUrl } from "@/shared/lib";
 import { PasswordInput } from "@/shared/ui";
 import { type SignInValues, signInSchema } from "../lib/validation";
 import { AuthBrandPanel } from "./auth-brand-panel";
+import { GithubOauthButton } from "./github-oauth-button";
 import { GoogleOauthButton } from "./google-oauth-button";
 
 type Props = {
@@ -29,6 +30,7 @@ type Props = {
 export const SignInForm = ({ className }: Props) => {
 	const navigate = useNavigate();
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+	const [isGithubLoading, setIsGithubLoading] = useState(false);
 
 	const {
 		register,
@@ -58,6 +60,14 @@ export const SignInForm = ({ className }: Props) => {
 		setIsGoogleLoading(true);
 		await authClient.signIn.social({
 			provider: "google",
+			callbackURL: oauthCallbackUrl("/dashboard"),
+		});
+	};
+
+	const onGithubSignIn = async () => {
+		setIsGithubLoading(true);
+		await authClient.signIn.social({
+			provider: "github",
 			callbackURL: oauthCallbackUrl("/dashboard"),
 		});
 	};
@@ -116,10 +126,14 @@ export const SignInForm = ({ className }: Props) => {
 								Or continue with
 							</FieldSeparator>
 
-							<Field>
+							<Field className="grid gap-2">
 								<GoogleOauthButton
 									loading={isGoogleLoading}
 									onGoogleSignIn={onGoogleSignIn}
+								/>
+								<GithubOauthButton
+									loading={isGithubLoading}
+									onGithubSignIn={onGithubSignIn}
 								/>
 							</Field>
 

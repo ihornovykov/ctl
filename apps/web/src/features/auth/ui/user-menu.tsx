@@ -87,7 +87,7 @@ export const UserMenu = () => {
 						<User />
 						Profile
 					</DropdownMenuItem>
-					<DropdownMenuItem>
+					<DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
 						<Settings />
 						Settings
 					</DropdownMenuItem>
