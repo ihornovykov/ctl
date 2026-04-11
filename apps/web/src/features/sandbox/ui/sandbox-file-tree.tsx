@@ -16,7 +16,8 @@ import {
 	IconPalette,
 } from "@tabler/icons-react";
 import { useEffect, useMemo } from "react";
-import { listSandboxDirIds, type SandboxTreeItemData } from "../lib/file-tree";
+import type { SandboxTreeItemData } from "../lib/constants";
+import { listSandboxDirIds } from "../lib/utils";
 
 type TreeIconData = Pick<SandboxTreeItemData, "children" | "type">;
 

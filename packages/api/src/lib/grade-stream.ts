@@ -61,6 +61,7 @@ const mapSubmission = (row: {
 }): SubmissionOutput => ({
 	id: row.id,
 	code: row.code,
+	files: null,
 	testsPassed: row.testsPassed,
 	score: row.score,
 	maxScore: row.maxScore,

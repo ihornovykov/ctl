@@ -10,103 +10,16 @@ import {
 	Clock,
 	GraduationCap,
 	Loader2,
-	Zap,
 } from "lucide-react";
 
 import { CertificateDownloadButton } from "@/features/certificate";
+import { LANGUAGE_ICON_SRC } from "@/shared/constants";
 
-const DIFFICULTY_CONFIG: Record<
-	string,
-	{ label: string; className: string; icon: typeof Zap }
-> = {
-	beginner: {
-		label: "Beginner",
-		className:
-			"bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-		icon: BookOpen,
-	},
-	intermediate: {
-		label: "Intermediate",
-		className:
-			"bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
-		icon: Zap,
-	},
-	advanced: {
-		label: "Advanced",
-		className:
-			"bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
-		icon: GraduationCap,
-	},
-};
-
-const LANG_ACCENT: Record<
-	string,
-	{
-		from: string;
-		via: string;
-		glow: string;
-		progressColor: string;
-		ring: string;
-	}
-> = {
-	javascript: {
-		from: "from-amber-400/25",
-		via: "via-yellow-300/15",
-		glow: "bg-amber-400/30",
-		progressColor: "bg-amber-400",
-		ring: "ring-amber-400/20",
-	},
-	typescript: {
-		from: "from-blue-500/25",
-		via: "via-sky-400/15",
-		glow: "bg-blue-500/30",
-		progressColor: "bg-blue-500",
-		ring: "ring-blue-500/20",
-	},
-	go: {
-		from: "from-cyan-400/25",
-		via: "via-teal-300/15",
-		glow: "bg-cyan-400/30",
-		progressColor: "bg-cyan-400",
-		ring: "ring-cyan-400/20",
-	},
-	python: {
-		from: "from-green-400/25",
-		via: "via-lime-300/15",
-		glow: "bg-green-400/30",
-		progressColor: "bg-green-400",
-		ring: "ring-green-400/20",
-	},
-	c: {
-		from: "from-slate-400/25",
-		via: "via-zinc-300/15",
-		glow: "bg-slate-400/30",
-		progressColor: "bg-slate-400",
-		ring: "ring-slate-400/20",
-	},
-	cpp: {
-		from: "from-violet-500/25",
-		via: "via-purple-400/15",
-		glow: "bg-violet-500/30",
-		progressColor: "bg-violet-500",
-		ring: "ring-violet-500/20",
-	},
-	react: {
-		from: "from-sky-500/25",
-		via: "via-cyan-400/15",
-		glow: "bg-sky-500/30",
-		progressColor: "bg-sky-500",
-		ring: "ring-sky-500/20",
-	},
-};
-
-const DEFAULT_ACCENT = {
-	from: "from-primary/25",
-	via: "via-primary/15",
-	glow: "bg-primary/30",
-	progressColor: "bg-primary",
-	ring: "ring-primary/20",
-};
+import {
+	COURSE_DETAIL_DEFAULT_ACCENT,
+	COURSE_DETAIL_DIFFICULTY_CONFIG,
+	COURSE_DETAIL_LANG_ACCENT,
+} from "../lib/constants";
 
 type Props = {
 	course: CourseDetail;
@@ -119,9 +32,14 @@ export const CourseDetailHeader = ({
 	onEnroll,
 	isEnrolling,
 }: Props) => {
-	const accent = LANG_ACCENT[course.language.id] ?? DEFAULT_ACCENT;
+	const accent =
+		COURSE_DETAIL_LANG_ACCENT[course.language.id] ??
+		COURSE_DETAIL_DEFAULT_ACCENT;
 	const difficultyConfig =
-		DIFFICULTY_CONFIG[course.difficulty] ?? DIFFICULTY_CONFIG.beginner;
+		COURSE_DETAIL_DIFFICULTY_CONFIG[course.difficulty] ??
+		COURSE_DETAIL_DIFFICULTY_CONFIG.beginner;
+	const iconSrc =
+		LANGUAGE_ICON_SRC[course.language.id] ?? course.language.icon ?? null;
 	const DifficultyIcon = difficultyConfig.icon;
 	const progressPct =
 		course.totalLessons > 0
@@ -282,11 +200,11 @@ export const CourseDetailHeader = ({
 										accent.glow
 									)}
 								/>
-								{course.language.icon ? (
+								{iconSrc ? (
 									<img
 										alt={course.language.name}
 										className="relative z-10 size-24 drop-shadow-xl"
-										src={course.language.icon}
+										src={iconSrc}
 									/>
 								) : (
 									<span className="relative z-10 font-bold text-6xl text-foreground/60">

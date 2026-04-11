@@ -1,13 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import {
-	getMockSandboxLessonTask,
-	mockSandboxTaskQueryKey,
-} from "../lib/mock-sandbox-task";
+import { orpc } from "@/shared/api";
+import { client } from "@/shared/api/orpc";
+
 import type {
 	SandboxSubmissionOutput,
 	SandboxSubmitOutput,
-} from "../lib/sandbox-types";
+} from "../lib/constants";
 import { useSandboxWorkspace } from "../stores/sandbox-workspace";
 
 type ClientTestResult = {
@@ -15,6 +14,11 @@ type ClientTestResult = {
 	passed: boolean;
 	error?: string;
 };
+
+const viteEnv = (
+	import.meta as unknown as { env: Record<string, string | undefined> }
+).env.VITE_SANDBOX_VITE_ENABLED;
+const viteSandboxEnabled = viteEnv === "true" || viteEnv === "1";
 
 const buildMockSubmission = (
 	files: Record<string, string>,
@@ -33,33 +37,43 @@ const buildMockSubmission = (
 	};
 };
 
-const mockSubmit = (params: {
-	sandboxTaskId: string;
-	files: Record<string, string>;
-	testResults: ClientTestResult[];
-}): SandboxSubmitOutput => ({
-	submission: buildMockSubmission(params.files, params.testResults),
-});
-
 export const useSandboxSubmit = (lessonId: string) => {
 	const queryClient = useQueryClient();
 	const setSubmitting = useSandboxWorkspace((s) => s.setSubmitting);
 	const setSubmission = useSandboxWorkspace((s) => s.setSubmission);
 
 	return useMutation({
-		mutationFn: (params: {
+		mutationFn: async (params: {
 			sandboxTaskId: string;
 			files: Record<string, string>;
 			testResults: ClientTestResult[];
-		}) => Promise.resolve(mockSubmit(params)),
+		}): Promise<SandboxSubmitOutput> => {
+			if (viteSandboxEnabled) {
+				const out = await client.tasks.submitSandbox({
+					taskId: params.sandboxTaskId,
+					files: params.files,
+					testResults: params.testResults,
+				});
+				return {
+					submission: {
+						...out.submission,
+						files: out.submission.files ?? params.files,
+					},
+				};
+			}
+			return {
+				submission: buildMockSubmission(params.files, params.testResults),
+			};
+		},
 
 		onMutate: () => setSubmitting(true),
 
 		onSuccess: ({ submission }) => {
 			setSubmission(submission);
-			queryClient.setQueryData(mockSandboxTaskQueryKey(lessonId), {
-				...getMockSandboxLessonTask(lessonId),
-				submission,
+			queryClient.invalidateQueries({
+				queryKey: orpc.tasks.getSandboxByLessonId.key({
+					input: { lessonId },
+				}),
 			});
 		},
 

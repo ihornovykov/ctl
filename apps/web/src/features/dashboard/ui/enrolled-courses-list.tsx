@@ -6,33 +6,10 @@ import { cn } from "@ctl/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BookOpen, Clock } from "lucide-react";
 
-const LANG_PROGRESS_COLOR: Record<string, string> = {
-	javascript: "bg-amber-400",
-	typescript: "bg-blue-500",
-	go: "bg-cyan-400",
-	python: "bg-green-400",
-	c: "bg-slate-400",
-	cpp: "bg-violet-500",
-};
-
-const DIFFICULTY_CONFIG: Record<string, { label: string; className: string }> =
-	{
-		beginner: {
-			label: "Beginner",
-			className:
-				"bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-		},
-		intermediate: {
-			label: "Intermediate",
-			className:
-				"bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
-		},
-		advanced: {
-			label: "Advanced",
-			className:
-				"bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
-		},
-	};
+import {
+	DASHBOARD_ENROLLMENT_DIFFICULTY_CONFIG,
+	DASHBOARD_ENROLLMENT_LANG_PROGRESS_COLOR,
+} from "../lib/constants";
 
 type Props = {
 	enrollments: EnrollmentSummary[];
@@ -71,10 +48,11 @@ export const EnrolledCoursesList = ({ enrollments }: Props) => {
 							)
 						: 0;
 				const progressColor =
-					LANG_PROGRESS_COLOR[enrollment.languageId] ?? "bg-primary";
+					DASHBOARD_ENROLLMENT_LANG_PROGRESS_COLOR[enrollment.languageId] ??
+					"bg-primary";
 				const difficultyConfig =
-					DIFFICULTY_CONFIG[enrollment.difficulty] ??
-					DIFFICULTY_CONFIG.beginner;
+					DASHBOARD_ENROLLMENT_DIFFICULTY_CONFIG[enrollment.difficulty] ??
+					DASHBOARD_ENROLLMENT_DIFFICULTY_CONFIG.beginner;
 
 				return (
 					<div

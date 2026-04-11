@@ -11,6 +11,7 @@ export const env = createEnv({
 		GOOGLE_CLIENT_ID: z.string().min(1),
 		GOOGLE_CLIENT_SECRET: z.string().min(1),
 		GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
+		PLAYGROUND_DOCKER_IMAGE: z.string().min(1).default("ctl-playground:latest"),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),

@@ -3,76 +3,14 @@ import { Badge } from "@ctl/ui/components/badge";
 import { cn } from "@ctl/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Clock } from "lucide-react";
+import { LANGUAGE_ICON_SRC } from "@/shared/constants";
 
-const DIFFICULTY_LABEL: Record<string, string> = {
-	beginner: "Beginner",
-	intermediate: "Intermediate",
-	advanced: "Advanced",
-};
-
-const DIFFICULTY_CLASS: Record<string, string> = {
-	beginner:
-		"bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/25",
-	intermediate:
-		"bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/25",
-	advanced:
-		"bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/25",
-};
-
-const LANG_ACCENT: Record<
-	string,
-	{ from: string; via: string; ring: string; glow: string }
-> = {
-	javascript: {
-		from: "from-amber-400/20",
-		via: "via-yellow-300/10",
-		ring: "group-hover:ring-amber-400/40",
-		glow: "bg-amber-400/20",
-	},
-	typescript: {
-		from: "from-blue-500/20",
-		via: "via-sky-400/10",
-		ring: "group-hover:ring-blue-500/40",
-		glow: "bg-blue-500/20",
-	},
-	go: {
-		from: "from-cyan-400/20",
-		via: "via-teal-300/10",
-		ring: "group-hover:ring-cyan-400/40",
-		glow: "bg-cyan-400/20",
-	},
-	python: {
-		from: "from-green-400/20",
-		via: "via-lime-300/10",
-		ring: "group-hover:ring-green-400/40",
-		glow: "bg-green-400/20",
-	},
-	c: {
-		from: "from-slate-400/20",
-		via: "via-zinc-300/10",
-		ring: "group-hover:ring-slate-400/40",
-		glow: "bg-slate-400/20",
-	},
-	cpp: {
-		from: "from-violet-500/20",
-		via: "via-purple-400/10",
-		ring: "group-hover:ring-violet-500/40",
-		glow: "bg-violet-500/20",
-	},
-	react: {
-		from: "from-sky-500/20",
-		via: "via-cyan-400/10",
-		ring: "group-hover:ring-sky-500/40",
-		glow: "bg-sky-500/20",
-	},
-};
-
-const DEFAULT_ACCENT = {
-	from: "from-primary/20",
-	via: "via-primary/10",
-	ring: "group-hover:ring-primary/40",
-	glow: "bg-primary/20",
-};
+import {
+	COURSE_CARD_DEFAULT_ACCENT,
+	COURSE_CARD_DIFFICULTY_CLASS,
+	COURSE_CARD_DIFFICULTY_LABEL,
+	COURSE_CARD_LANG_ACCENT,
+} from "../lib/constants";
 
 type Props = {
 	course: CourseListItem;
@@ -80,7 +18,10 @@ type Props = {
 };
 
 export const CourseCard = ({ course, index = 0 }: Props) => {
-	const accent = LANG_ACCENT[course.language.id] ?? DEFAULT_ACCENT;
+	const accent =
+		COURSE_CARD_LANG_ACCENT[course.language.id] ?? COURSE_CARD_DEFAULT_ACCENT;
+	const iconSrc =
+		LANGUAGE_ICON_SRC[course.language.id] ?? course.language.icon ?? null;
 
 	return (
 		<Link
@@ -96,26 +37,23 @@ export const CourseCard = ({ course, index = 0 }: Props) => {
 			style={{ animationDelay: `${index * 80}ms` }}
 			to="/courses/$slug"
 		>
-			{/* Gradient header zone */}
 			<div
 				className={cn(
 					"relative flex h-36 items-center justify-center overflow-hidden",
 					`bg-linear-to-br ${accent.from} ${accent.via} to-transparent`
 				)}
 			>
-				{/* Glow blob */}
 				<div
 					className={cn(
 						"absolute size-32 rounded-full opacity-60 blur-3xl",
 						accent.glow
 					)}
 				/>
-				{/* Language icon */}
-				{course.language.icon ? (
+				{iconSrc ? (
 					<img
 						alt={course.language.name}
 						className="relative z-10 size-16 drop-shadow-lg transition-transform duration-300 group-hover:scale-110"
-						src={course.language.icon}
+						src={iconSrc}
 					/>
 				) : (
 					<span className="relative z-10 font-bold text-4xl text-foreground/60">
@@ -124,7 +62,6 @@ export const CourseCard = ({ course, index = 0 }: Props) => {
 				)}
 			</div>
 
-			{/* Body */}
 			<div className="flex flex-1 flex-col gap-3 p-5">
 				<div className="flex items-start justify-between gap-2">
 					<h3 className="font-semibold text-base leading-snug tracking-tight">
@@ -141,11 +78,13 @@ export const CourseCard = ({ course, index = 0 }: Props) => {
 					<Badge
 						className={cn(
 							"border font-medium text-xs",
-							DIFFICULTY_CLASS[course.difficulty] ?? DIFFICULTY_CLASS.beginner
+							COURSE_CARD_DIFFICULTY_CLASS[course.difficulty] ??
+								COURSE_CARD_DIFFICULTY_CLASS.beginner
 						)}
 						variant="outline"
 					>
-						{DIFFICULTY_LABEL[course.difficulty] ?? course.difficulty}
+						{COURSE_CARD_DIFFICULTY_LABEL[course.difficulty] ??
+							course.difficulty}
 					</Badge>
 
 					<span className="flex items-center gap-1 text-muted-foreground text-xs">

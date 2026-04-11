@@ -1,5 +1,6 @@
 import { Button } from "@ctl/ui/components/button";
 import { cn } from "@ctl/ui/lib/utils";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import Ansi from "ansi-to-react";
 import {
 	AlertCircle,
@@ -13,9 +14,11 @@ import {
 	type HTMLAttributes,
 	useContext,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
+import { match } from "ts-pattern";
 
 type TerminalContextValue = {
 	output: string;
@@ -28,6 +31,13 @@ const TerminalCtx = createContext<TerminalContextValue>({
 	isStreaming: false,
 	exitCode: null,
 });
+
+const splitOutputLines = (text: string): string[] => {
+	if (!text) {
+		return [];
+	}
+	return text.split("\n");
+};
 
 const TerminalChrome = ({
 	className,
@@ -123,34 +133,93 @@ const TerminalCopyButton = ({
 	);
 };
 
+const LINE_ESTIMATE_PX = 22;
+
 const TerminalContent = ({
 	className,
 	...props
 }: HTMLAttributes<HTMLDivElement>) => {
 	const { output, isStreaming } = useContext(TerminalCtx);
-	const ref = useRef<HTMLDivElement>(null);
+	const parentRef = useRef<HTMLDivElement>(null);
+
+	const lines = useMemo(() => splitOutputLines(output), [output]);
+	const rowCount = lines.length + (isStreaming ? 1 : 0);
+
+	const virtualizer = useVirtualizer({
+		count: rowCount,
+		getScrollElement: () => parentRef.current,
+		estimateSize: () => LINE_ESTIMATE_PX,
+		overscan: 24,
+		measureElement: (el) => el.getBoundingClientRect().height,
+	});
+
+	const lastIndex = Math.max(0, rowCount - 1);
 
 	useEffect(() => {
-		if (ref.current) {
-			ref.current.scrollTop = ref.current.scrollHeight;
+		if (rowCount === 0) {
+			return;
 		}
-	}, [output]);
+		const id = requestAnimationFrame(() => {
+			virtualizer.scrollToIndex(lastIndex, { align: "end" });
+		});
+		return () => cancelAnimationFrame(id);
+	}, [lastIndex, rowCount, virtualizer]);
+
+	const body = match({ rowCount, isStreaming })
+		.when(
+			({ rowCount: n }) => n > 0,
+			() => (
+				<div
+					className="relative w-full"
+					style={{ height: virtualizer.getTotalSize() }}
+				>
+					{virtualizer.getVirtualItems().map((virtualRow) => {
+						const isCursorRow =
+							isStreaming && virtualRow.index === lines.length;
+						return (
+							<div
+								className="absolute top-0 left-0 w-full whitespace-pre-wrap break-words text-zinc-800 dark:text-zinc-100"
+								data-index={virtualRow.index}
+								key={virtualRow.key}
+								ref={virtualizer.measureElement}
+								style={{
+									transform: `translateY(${virtualRow.start}px)`,
+								}}
+							>
+								{match(isCursorRow)
+									.with(true, () => (
+										<span className="inline-block h-4 w-2 animate-pulse bg-zinc-800 dark:bg-zinc-100" />
+									))
+									.with(false, () => (
+										<Ansi>{lines[virtualRow.index] ?? ""}</Ansi>
+									))
+									.exhaustive()}
+							</div>
+						);
+					})}
+				</div>
+			)
+		)
+		.when(
+			({ rowCount: n, isStreaming: streaming }) => n === 0 && streaming,
+			() => (
+				<div className="text-zinc-800 dark:text-zinc-100">
+					<span className="inline-block h-4 w-2 animate-pulse bg-zinc-800 dark:bg-zinc-100" />
+				</div>
+			)
+		)
+		.otherwise(() => null);
 
 	return (
 		<div
 			className={cn(
-				"flex-1 overflow-auto p-4 font-mono text-sm leading-relaxed",
+				"min-h-0 flex-1 overflow-auto p-4 font-mono text-sm leading-relaxed",
 				className
 			)}
-			ref={ref}
+			ref={parentRef}
 			{...props}
 		>
-			<pre className="wrap-break-word whitespace-pre-wrap text-zinc-800 dark:text-zinc-100">
-				<Ansi>{output}</Ansi>
-				{isStreaming && (
-					<span className="ml-0.5 inline-block h-4 w-2 animate-pulse bg-zinc-800 dark:bg-zinc-100" />
-				)}
-			</pre>
+			{body}
 		</div>
 	);
 };
@@ -160,6 +229,8 @@ type Props = {
 	stderr: string;
 	exitCode?: number | null;
 	isStreaming?: boolean;
+	emptyTitle?: string;
+	emptyDescription?: string;
 };
 
 export const ConsoleOutput = ({
@@ -167,6 +238,8 @@ export const ConsoleOutput = ({
 	stderr,
 	exitCode = null,
 	isStreaming = false,
+	emptyTitle = "No output yet",
+	emptyDescription = "Run your code to see output here",
 }: Props) => {
 	const hasOutput = stdout || stderr;
 
@@ -189,10 +262,10 @@ export const ConsoleOutput = ({
 						</div>
 						<div>
 							<p className="font-semibold text-sm text-zinc-600 dark:text-zinc-300">
-								No output yet
+								{emptyTitle}
 							</p>
 							<p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
-								Run your code to see output here
+								{emptyDescription}
 							</p>
 						</div>
 					</div>

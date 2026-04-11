@@ -12,38 +12,7 @@ import {
 
 import { dialogs } from "@/shared/stores";
 
-const LANGUAGE_DISPLAY: Record<string, { label: string; color: string }> = {
-	javascript: {
-		label: "JS",
-		color:
-			"bg-yellow-400/15 text-yellow-600 dark:text-yellow-300 border border-yellow-400/20",
-	},
-	typescript: {
-		label: "TS",
-		color:
-			"bg-blue-400/15 text-blue-600 dark:text-blue-300 border border-blue-400/20",
-	},
-	python: {
-		label: "PY",
-		color:
-			"bg-cyan-400/15 text-cyan-600 dark:text-cyan-300 border border-cyan-400/20",
-	},
-	go: {
-		label: "Go",
-		color:
-			"bg-sky-400/15 text-sky-600 dark:text-sky-300 border border-sky-400/20",
-	},
-	c: {
-		label: "C",
-		color:
-			"bg-zinc-400/15 text-zinc-600 dark:text-zinc-300 border border-zinc-400/20",
-	},
-	cpp: {
-		label: "C++",
-		color:
-			"bg-indigo-400/15 text-indigo-600 dark:text-indigo-300 border border-indigo-400/20",
-	},
-};
+import { TASK_TOOLBAR_LANGUAGE_DISPLAY } from "../lib/constants";
 
 type Props = {
 	courseSlug: string;
@@ -76,7 +45,7 @@ export const TaskToolbar = ({
 	onSubmit,
 	onNextLesson,
 }: Props) => {
-	const lang = LANGUAGE_DISPLAY[languageId] ?? {
+	const lang = TASK_TOOLBAR_LANGUAGE_DISPLAY[languageId] ?? {
 		label: languageId.toUpperCase(),
 		color: "bg-muted text-muted-foreground border border-border",
 	};

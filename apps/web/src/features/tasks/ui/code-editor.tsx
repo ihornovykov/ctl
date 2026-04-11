@@ -5,24 +5,17 @@ import { useTheme } from "@/shared/providers";
 
 import "@/features/sandbox/ui/sandbox-code-editor.css";
 import {
+	SANDBOX_EDITOR_FONT_WEIGHT,
+	SANDBOX_EDITOR_LEADING_SLASHES,
+	SANDBOX_EDITOR_SURFACE,
+} from "@/features/sandbox/lib/constants";
+import {
 	applySandboxEditorTheme,
 	getSandboxMonaco,
 	type SandboxMonaco,
-} from "@/features/sandbox/lib/sandbox-monaco";
+} from "@/features/sandbox/lib/utils";
 
-const TASK_EDITOR_SURFACE = "#15191d";
-const TASK_EDITOR_FONT_WEIGHT = "500";
-
-const LANGUAGE_TO_EXT: Record<string, string> = {
-	javascript: "js",
-	typescript: "ts",
-	tsx: "tsx",
-	jsx: "jsx",
-	python: "py",
-	go: "go",
-	c: "c",
-	cpp: "cpp",
-};
+import { TASK_CODE_EDITOR_LANGUAGE_TO_EXT } from "@/features/tasks/lib/constants";
 
 type Props = {
 	code: string;
@@ -59,8 +52,6 @@ const useResolvedTheme = () => {
 
 type EditorInstance = ReturnType<SandboxMonaco["editor"]["create"]>;
 
-const LEADING_SLASHES = /^\/+/;
-
 const TaskMonacoPane = ({
 	code,
 	languageId,
@@ -81,9 +72,9 @@ const TaskMonacoPane = ({
 
 	const [isLoading, setIsLoading] = useState(true);
 
-	const defaultPath = `task/solution.${LANGUAGE_TO_EXT[languageId] ?? "txt"}`;
+	const defaultPath = `task/solution.${TASK_CODE_EDITOR_LANGUAGE_TO_EXT[languageId] ?? "txt"}`;
 	const pathPart = (modelPath ?? defaultPath)
-		.replace(LEADING_SLASHES, "")
+		.replace(SANDBOX_EDITOR_LEADING_SLASHES, "")
 		.replace(/\\/g, "/");
 	const filePath = pathPart.startsWith("/") ? pathPart : `/${pathPart}`;
 
@@ -102,7 +93,7 @@ const TaskMonacoPane = ({
 	useEffect(() => {
 		editorRef.current?.updateOptions({
 			readOnly: !!readOnly,
-			fontWeight: TASK_EDITOR_FONT_WEIGHT,
+			fontWeight: SANDBOX_EDITOR_FONT_WEIGHT,
 			cursorBlinking: readOnly ? "solid" : "blink",
 			renderLineHighlight: readOnly ? "none" : "line",
 		});
@@ -148,7 +139,7 @@ const TaskMonacoPane = ({
 				model,
 				readOnly: !!readOnly,
 				fontSize: 13.5,
-				fontWeight: TASK_EDITOR_FONT_WEIGHT,
+				fontWeight: SANDBOX_EDITOR_FONT_WEIGHT,
 				fontFamily:
 					"'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', monospace",
 				fontLigatures: true,
@@ -215,7 +206,7 @@ const TaskMonacoPane = ({
 					style={
 						isDark
 							? ({
-									backgroundColor: `${TASK_EDITOR_SURFACE}e0`,
+									backgroundColor: `${SANDBOX_EDITOR_SURFACE}e0`,
 								} satisfies CSSProperties)
 							: undefined
 					}
@@ -226,8 +217,8 @@ const TaskMonacoPane = ({
 };
 
 const filePathForKey = (modelPath: string | undefined, languageId: string) => {
-	const defaultPath = `task/solution.${LANGUAGE_TO_EXT[languageId] ?? "txt"}`;
-	return (modelPath ?? defaultPath).replace(LEADING_SLASHES, "");
+	const defaultPath = `task/solution.${TASK_CODE_EDITOR_LANGUAGE_TO_EXT[languageId] ?? "txt"}`;
+	return (modelPath ?? defaultPath).replace(SANDBOX_EDITOR_LEADING_SLASHES, "");
 };
 
 export const CodeEditor = ({

@@ -60,6 +60,7 @@ export const taskSchema = z.object({
 export const submissionSchema = z.object({
 	id: z.string(),
 	code: z.string(),
+	files: z.record(z.string(), z.string()).nullable(),
 	testsPassed: z.boolean(),
 	score: z.number(),
 	maxScore: z.number(),
@@ -108,6 +109,65 @@ export const gradeStreamEventSchema = z.discriminatedUnion("type", [
 ]);
 
 export type GradeStreamEvent = z.infer<typeof gradeStreamEventSchema>;
+
+const sandboxFrameworkSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	icon: z.string().nullable(),
+	sandpackTemplate: z.string(),
+	defaultDependencies: z.record(z.string(), z.string()),
+	defaultDevDependencies: z.record(z.string(), z.string()),
+});
+
+const sandboxTestSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	testFilePath: z.string(),
+	testCode: z.string(),
+	sortOrder: z.number(),
+});
+
+export const sandboxTaskOutputSchema = z.object({
+	id: z.string(),
+	lessonId: z.string(),
+	frameworkId: z.string(),
+	description: z.string(),
+	starterFiles: z.record(z.string(), z.string()),
+	dependencies: z.record(z.string(), z.string()),
+	entryFile: z.string(),
+	readOnlyFiles: z.array(z.string()),
+	tests: z.array(sandboxTestSchema),
+	criteria: z.array(gradingCriteriaSchema),
+	framework: sandboxFrameworkSchema,
+});
+
+export const sandboxSubmissionOutputSchema = z.object({
+	id: z.string(),
+	code: z.string(),
+	files: z.record(z.string(), z.string()),
+	testsPassed: z.boolean(),
+	score: z.number(),
+	maxScore: z.number(),
+	aiFeedback: aiFeedbackSchema.nullable(),
+	submittedAt: z.date(),
+});
+
+export const sandboxLessonTaskOutputSchema = z.object({
+	kind: z.literal("sandbox"),
+	task: sandboxTaskOutputSchema,
+	submission: sandboxSubmissionOutputSchema.nullable(),
+});
+
+export const submitSandboxInputSchema = z.object({
+	taskId: z.string(),
+	files: z.record(z.string(), z.string()),
+	testResults: z.array(testResultSchema),
+});
+
+export type SandboxLessonTaskOutput = z.infer<
+	typeof sandboxLessonTaskOutputSchema
+>;
+export type SubmitSandboxInput = z.infer<typeof submitSandboxInputSchema>;
 
 export type GetByLessonIdInput = z.infer<typeof getByLessonIdInput>;
 export type RunCodeInput = z.infer<typeof runCodeInput>;

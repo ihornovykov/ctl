@@ -2,7 +2,7 @@ import { cn } from "@ctl/ui/lib/utils";
 import { CheckCircle2, Cpu, Lightbulb, Star } from "lucide-react";
 import { match, P } from "ts-pattern";
 import { MarkdownRenderer } from "@/shared/ui";
-import type { SandboxSubmissionOutput } from "../lib/sandbox-types";
+import type { SandboxSubmissionOutput } from "../lib/constants";
 
 type DescriptionProps = {
 	description: string;

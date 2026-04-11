@@ -146,7 +146,6 @@ export const LessonContent = ({ lesson, courseSlug }: Props) => {
 						<div className="mt-6 h-px bg-border/50" />
 					</div>
 
-					{/* Markdown content */}
 					<div
 						className="fade-in slide-in-from-bottom-4 animate-in fill-mode-backwards duration-500"
 						style={{ animationDelay: "80ms" }}
@@ -154,7 +153,6 @@ export const LessonContent = ({ lesson, courseSlug }: Props) => {
 						<MarkdownRenderer content={lesson.content} />
 					</div>
 
-					{/* Bottom action area */}
 					<div
 						className="fade-in slide-in-from-bottom-4 mt-12 animate-in fill-mode-backwards duration-500"
 						style={{ animationDelay: "160ms" }}
@@ -173,7 +171,6 @@ export const LessonContent = ({ lesson, courseSlug }: Props) => {
 							/>
 						)}
 
-						{/* Prev / Next navigation */}
 						<LessonNavigation courseSlug={courseSlug} lesson={lesson} />
 					</div>
 				</div>

@@ -6,23 +6,7 @@ import { CalendarDays, Mail } from "lucide-react";
 
 import { getInitials } from "@/shared/lib";
 
-const MONTHS = [
-	"Jan",
-	"Feb",
-	"Mar",
-	"Apr",
-	"May",
-	"Jun",
-	"Jul",
-	"Aug",
-	"Sep",
-	"Oct",
-	"Nov",
-	"Dec",
-];
-
-const formatMemberSince = (d: Date) =>
-	`${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+import { formatDashboardMemberSince } from "../lib/utils";
 
 type Props = {
 	user: ProfileOutput["user"];
@@ -80,7 +64,8 @@ export const ProfileHeader = ({ user, stats }: Props) => {
 								</span>
 								<span className="flex items-center gap-1.5">
 									<CalendarDays className="size-3.5" />
-									Member since {formatMemberSince(new Date(user.createdAt))}
+									Member since{" "}
+									{formatDashboardMemberSince(new Date(user.createdAt))}
 								</span>
 							</div>
 						</div>

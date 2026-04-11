@@ -143,7 +143,6 @@ export const LessonItem = ({
 			className="fade-in slide-in-from-left-4 flex animate-in gap-4 fill-mode-backwards duration-500"
 			style={{ animationDelay: `${index * 80}ms` }}
 		>
-			{/* Timeline track */}
 			<div className="flex flex-col items-center">
 				<LessonStatus index={index} isEnrolled={isEnrolled} lesson={lesson} />
 				{!isLast && (

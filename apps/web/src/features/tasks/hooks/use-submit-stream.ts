@@ -8,8 +8,8 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 import { orpc } from "@/shared/api";
+import type { ChainStep } from "../lib/constants";
 import { useTaskWorkspace } from "../stores/task-workspace";
-import type { ChainStep } from "../ui/chain-of-thought";
 
 const parseSSE = (chunk: string): GradeStreamEvent[] => {
 	const events: GradeStreamEvent[] = [];
@@ -17,8 +17,8 @@ const parseSSE = (chunk: string): GradeStreamEvent[] => {
 		if (line.startsWith("data: ")) {
 			try {
 				events.push(JSON.parse(line.slice(6)) as GradeStreamEvent);
-			} catch {
-				// ignore malformed lines
+			} catch (error) {
+				console.error(error);
 			}
 		}
 	}

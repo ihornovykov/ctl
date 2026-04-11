@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import type { SandboxSubmissionOutput } from "../lib/sandbox-types";
+import type { SandboxSubmissionOutput } from "../lib/constants";
 
-export type SandboxActiveTab = "overview" | "preview" | "results";
+export type SandboxActiveTab = "overview" | "preview" | "console" | "results";
 
 export type SandboxFileEntry = {
 	code: string;
@@ -23,6 +23,9 @@ type State = {
 	files: Record<string, SandboxFileEntry>;
 	activeFile: string;
 	viteSessionId: string | null;
+	consoleOutput: string;
+	consoleError: string;
+	consoleExitCode: number | null;
 };
 
 type Actions = {
@@ -38,6 +41,11 @@ type Actions = {
 	updateFile: (path: string, code: string) => void;
 	setActiveFile: (path: string) => void;
 	setViteSessionId: (sessionId: string | null) => void;
+	appendPlaygroundConsoleChunk: (
+		stream: "stdout" | "stderr",
+		chunk: string
+	) => void;
+	clearConsole: () => void;
 	reset: (existingSubmission?: SandboxSubmissionOutput | null) => void;
 };
 
@@ -50,6 +58,9 @@ export const useSandboxWorkspace = create<State & Actions>((set) => ({
 	files: {},
 	activeFile: "",
 	viteSessionId: null,
+	consoleOutput: "",
+	consoleError: "",
+	consoleExitCode: null,
 
 	setActiveTab: (activeTab) => set({ activeTab }),
 	setSubmitting: (isSubmitting) => set({ isSubmitting }),
@@ -57,11 +68,7 @@ export const useSandboxWorkspace = create<State & Actions>((set) => ({
 
 	setTestResults: (testResults) => set({ testResults }),
 
-	setSubmission: (submission) =>
-		set({
-			submission,
-			activeTab: "overview",
-		}),
+	setSubmission: (submission) => set({ submission }),
 
 	setFiles: (files, activeFile) => set({ files, activeFile }),
 
@@ -83,6 +90,24 @@ export const useSandboxWorkspace = create<State & Actions>((set) => ({
 
 	setViteSessionId: (viteSessionId) => set({ viteSessionId }),
 
+	appendPlaygroundConsoleChunk: (stream, chunk) =>
+		set((s) => {
+			const maxChars = 400_000;
+			const next =
+				stream === "stderr" ? s.consoleError + chunk : s.consoleOutput + chunk;
+			const trimmed = next.length > maxChars ? next.slice(-maxChars) : next;
+			return stream === "stderr"
+				? { consoleError: trimmed }
+				: { consoleOutput: trimmed };
+		}),
+
+	clearConsole: () =>
+		set({
+			consoleOutput: "",
+			consoleError: "",
+			consoleExitCode: null,
+		}),
+
 	reset: (existingSubmission) =>
 		set({
 			activeTab: "preview",
@@ -91,5 +116,8 @@ export const useSandboxWorkspace = create<State & Actions>((set) => ({
 			testResults: [],
 			submission: existingSubmission ?? null,
 			viteSessionId: null,
+			consoleOutput: "",
+			consoleError: "",
+			consoleExitCode: null,
 		}),
 }));

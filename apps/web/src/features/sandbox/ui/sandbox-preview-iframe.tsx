@@ -22,10 +22,11 @@ export const SandboxPreviewIframe = ({
 			style={style}
 		>
 			<iframe
-				className="block size-full min-h-[200px] border-0 bg-white dark:bg-neutral-950"
-				sandbox="allow-scripts"
+				className="block size-full min-h-[200px] border-0 bg-white"
+				sandbox="allow-scripts allow-same-origin"
 				src={useRemote ? (previewSrc ?? undefined) : undefined}
 				srcDoc={useRemote ? undefined : (html ?? "")}
+				style={{ colorScheme: "light" }}
 				title="Sandbox Preview"
 			/>
 		</div>

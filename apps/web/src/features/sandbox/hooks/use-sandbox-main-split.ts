@@ -33,7 +33,7 @@ const persistPct = (n: number) => {
 	try {
 		localStorage.setItem(STORAGE_KEY, String(Math.round(n * 10) / 10));
 	} catch {
-		/* ignore */
+		return;
 	}
 };
 

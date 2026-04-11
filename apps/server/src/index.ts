@@ -1,6 +1,7 @@
 import { createContext } from "@ctl/api/context";
 import { warmDockerImages } from "@ctl/api/lib/code-runner";
 import { streamGrade } from "@ctl/api/lib/grade-stream";
+import { warmPlaygroundImage } from "@ctl/api/lib/playground-session";
 import { appRouter } from "@ctl/api/routers/index";
 import { auth } from "@ctl/auth";
 import { env } from "@ctl/env/server";
@@ -11,6 +12,8 @@ import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fastify";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import Fastify from "fastify";
+
+import { registerPlaygroundPreviewProxy } from "./register-playground-preview";
 
 const baseCorsConfig = {
 	origin: env.CORS_ORIGIN,
@@ -46,6 +49,8 @@ const fastify = Fastify({
 });
 
 fastify.register(fastifyCors, baseCorsConfig);
+
+registerPlaygroundPreviewProxy(fastify);
 
 fastify.register((rpcApp) => {
 	rpcApp.addContentTypeParser("*", (_, _payload, done) => {
@@ -142,13 +147,17 @@ fastify.post("/api/tasks/grade-stream", async (request, reply) => {
 
 fastify.get("/", () => "OK");
 
-fastify.listen({ port: 3000 }, (err) => {
+const listenPort = Number(process.env.PORT) || 3000;
+fastify.listen({ port: listenPort }, (err) => {
 	if (err) {
 		fastify.log.error(err);
 		process.exit(1);
 	}
-	console.log("Server running on port 3000");
+	console.log(`Server running on port ${listenPort}`);
 	warmDockerImages().catch((e) =>
 		fastify.log.warn({ err: e }, "Docker image warm-up failed (non-fatal)")
+	);
+	warmPlaygroundImage().catch((e) =>
+		fastify.log.warn({ err: e }, "Playground image warm-up failed (non-fatal)")
 	);
 });

@@ -5,44 +5,8 @@ import { Award, BookOpen, CheckCircle2, Clock } from "lucide-react";
 
 import { CertificateDownloadButton } from "@/features/certificate";
 
-const MONTHS = [
-	"Jan",
-	"Feb",
-	"Mar",
-	"Apr",
-	"May",
-	"Jun",
-	"Jul",
-	"Aug",
-	"Sep",
-	"Oct",
-	"Nov",
-	"Dec",
-];
-
-const formatDate = (d: Date) => {
-	const date = new Date(d);
-	return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-};
-
-const DIFFICULTY_CONFIG: Record<string, { label: string; className: string }> =
-	{
-		beginner: {
-			label: "Beginner",
-			className:
-				"bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-		},
-		intermediate: {
-			label: "Intermediate",
-			className:
-				"bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
-		},
-		advanced: {
-			label: "Advanced",
-			className:
-				"bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
-		},
-	};
+import { DASHBOARD_ENROLLMENT_DIFFICULTY_CONFIG } from "../lib/constants";
+import { formatDashboardShortDate } from "../lib/utils";
 
 type Props = {
 	enrollments: EnrollmentSummary[];
@@ -69,8 +33,8 @@ export const CompletedCoursesList = ({ enrollments }: Props) => {
 		<div className="grid gap-4 sm:grid-cols-2">
 			{completed.map((enrollment, i) => {
 				const difficultyConfig =
-					DIFFICULTY_CONFIG[enrollment.difficulty] ??
-					DIFFICULTY_CONFIG.beginner;
+					DASHBOARD_ENROLLMENT_DIFFICULTY_CONFIG[enrollment.difficulty] ??
+					DASHBOARD_ENROLLMENT_DIFFICULTY_CONFIG.beginner;
 
 				return (
 					<div
@@ -133,7 +97,7 @@ export const CompletedCoursesList = ({ enrollments }: Props) => {
 									</span>
 									<span className="font-medium text-sm">
 										{enrollment.completedAt
-											? formatDate(enrollment.completedAt)
+											? formatDashboardShortDate(enrollment.completedAt)
 											: "—"}
 									</span>
 								</div>

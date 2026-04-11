@@ -15,20 +15,12 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { authClient, oauthCallbackUrl } from "@/shared/lib";
 import { PasswordInput } from "@/shared/ui";
+import { type SignUpValues, signUpSchema } from "../lib/validation";
 import { AuthBrandPanel } from "./auth-brand-panel";
 import { GoogleOauthButton } from "./google-oauth-button";
-
-const signUpSchema = z.object({
-	name: z.string().min(2, "Name must be at least 2 characters"),
-	email: z.string().email("Please enter a valid email address"),
-	password: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-type SignUpValues = z.infer<typeof signUpSchema>;
 
 type Props = {
 	className?: string;

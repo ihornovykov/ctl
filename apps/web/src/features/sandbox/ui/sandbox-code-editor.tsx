@@ -4,10 +4,15 @@ import { useTheme } from "@/shared/providers";
 
 import "./sandbox-code-editor.css";
 import {
+	SANDBOX_EDITOR_FONT_WEIGHT,
+	SANDBOX_EDITOR_LEADING_SLASHES,
+	SANDBOX_EDITOR_SURFACE,
+} from "../lib/constants";
+import {
 	applySandboxEditorTheme,
 	getSandboxMonaco,
 	type SandboxMonaco,
-} from "../lib/sandbox-monaco";
+} from "../lib/utils";
 
 type Props = {
 	code: string;
@@ -42,11 +47,6 @@ const useResolvedTheme = () => {
 };
 
 type EditorInstance = ReturnType<SandboxMonaco["editor"]["create"]>;
-
-const LEADING_SLASHES = /^\/+/;
-
-const SANDBOX_EDITOR_SURFACE = "#15191d";
-const SANDBOX_EDITOR_FONT_WEIGHT = "500";
 
 const SandboxMonacoPane = ({
 	code,
@@ -122,7 +122,7 @@ const SandboxMonacoPane = ({
 			applySandboxEditorTheme(monaco, isDark);
 
 			const pathPart = modelPath
-				.replace(LEADING_SLASHES, "")
+				.replace(SANDBOX_EDITOR_LEADING_SLASHES, "")
 				.replace(/\\/g, "/");
 			const filePath = pathPart.startsWith("/") ? pathPart : `/${pathPart}`;
 			const uri = monaco.Uri.parse(`file://${filePath}`);
@@ -193,8 +193,6 @@ const SandboxMonacoPane = ({
 			editor?.dispose();
 			editorRef.current = null;
 		};
-		// Intentionally once per pane mount (parent uses key={modelPath}). Initial
-		// `code` is captured from first render; live edits use onChange / read-only sync.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -238,7 +236,7 @@ export const SandboxCodeEditor = ({
 				<div className="flex items-center gap-2 border-border/50 border-b bg-amber-500/5 px-4 py-1.5">
 					<div className="size-1.5 rounded-full bg-amber-500" />
 					<span className="text-amber-600 text-xs dark:text-amber-400">
-						Read-only — submission locked
+						Read-only
 					</span>
 				</div>
 			) : null}

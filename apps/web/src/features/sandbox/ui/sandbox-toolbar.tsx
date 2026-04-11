@@ -11,23 +11,7 @@ import {
 
 import { dialogs } from "@/shared/stores";
 
-const FRAMEWORK_DISPLAY: Record<string, { label: string; color: string }> = {
-	react: {
-		label: "React",
-		color:
-			"bg-sky-400/15 text-sky-600 dark:text-sky-300 border border-sky-400/20",
-	},
-	vue: {
-		label: "Vue",
-		color:
-			"bg-emerald-400/15 text-emerald-600 dark:text-emerald-300 border border-emerald-400/20",
-	},
-	svelte: {
-		label: "Svelte",
-		color:
-			"bg-orange-400/15 text-orange-600 dark:text-orange-300 border border-orange-400/20",
-	},
-};
+import { SANDBOX_TOOLBAR_FRAMEWORK_DISPLAY } from "../lib/constants";
 
 type Props = {
 	courseSlug: string;
@@ -57,7 +41,7 @@ export const SandboxToolbar = ({
 	onRunTests,
 }: Props) => {
 	const frameworkKey = frameworkName.toLowerCase();
-	const badge = FRAMEWORK_DISPLAY[frameworkKey] ?? {
+	const badge = SANDBOX_TOOLBAR_FRAMEWORK_DISPLAY[frameworkKey] ?? {
 		label: frameworkName,
 		color: "bg-muted text-muted-foreground border border-border",
 	};

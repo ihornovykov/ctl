@@ -1,83 +1,21 @@
 import { cn } from "@ctl/ui/lib/utils";
+import { Cpu, Loader2 } from "lucide-react";
+
 import {
-	CheckCircle2,
-	Cpu,
-	FlaskConical,
-	Loader2,
-	XCircle,
-} from "lucide-react";
+	CHAIN_OF_THOUGHT_STEP_ICON_CLASS,
+	CHAIN_OF_THOUGHT_STEP_META,
+	CHAIN_OF_THOUGHT_STEP_TEXT_CLASS,
+	type ChainStep,
+} from "../lib/constants";
 
-export type ChainStepStatus = "pending" | "active" | "complete" | "error";
-
-export type ChainStep =
-	| { id: "running_tests"; status: ChainStepStatus }
-	| {
-			id: "tests_complete";
-			status: ChainStepStatus;
-			passed: number;
-			total: number;
-	  }
-	| {
-			id: "tests_failed";
-			status: ChainStepStatus;
-			passed: number;
-			total: number;
-	  }
-	| { id: "grading_start"; status: ChainStepStatus }
-	| { id: "grading_done"; status: ChainStepStatus };
+export type { ChainStep, ChainStepStatus } from "../lib/constants";
 
 type Props = {
 	steps: ChainStep[];
 };
 
-const STEP_META: Record<
-	ChainStep["id"],
-	{ icon: React.ElementType; label: (step: ChainStep) => string }
-> = {
-	running_tests: {
-		icon: FlaskConical,
-		label: () => "Running tests…",
-	},
-	tests_complete: {
-		icon: CheckCircle2,
-		label: (s) => {
-			const step = s as Extract<ChainStep, { id: "tests_complete" }>;
-			return `${step.passed}/${step.total} tests passed`;
-		},
-	},
-	tests_failed: {
-		icon: XCircle,
-		label: (s) => {
-			const step = s as Extract<ChainStep, { id: "tests_failed" }>;
-			return `${step.passed}/${step.total} tests passed — fix failing tests`;
-		},
-	},
-	grading_start: {
-		icon: Cpu,
-		label: () => "Reviewing your code with AI…",
-	},
-	grading_done: {
-		icon: Cpu,
-		label: () => "AI review complete",
-	},
-};
-
-const stepIconColor: Record<ChainStepStatus, string> = {
-	pending: "text-muted-foreground/30",
-	active: "text-primary",
-	complete: "text-emerald-500",
-	error: "text-destructive",
-};
-
-const stepTextColor: Record<ChainStepStatus, string> = {
-	pending: "text-muted-foreground/40",
-	active: "text-foreground",
-	complete: "text-foreground",
-	error: "text-destructive",
-};
-
 const StepRow = ({ step, isLast }: { step: ChainStep; isLast: boolean }) => {
-	const meta = STEP_META[step.id];
+	const meta = CHAIN_OF_THOUGHT_STEP_META[step.id];
 	const Icon = meta.icon;
 	const label = meta.label(step);
 
@@ -92,10 +30,18 @@ const StepRow = ({ step, isLast }: { step: ChainStep; isLast: boolean }) => {
 				>
 					{step.status === "active" ? (
 						<Loader2
-							className={cn("size-3.5 animate-spin", stepIconColor.active)}
+							className={cn(
+								"size-3.5 animate-spin",
+								CHAIN_OF_THOUGHT_STEP_ICON_CLASS.active
+							)}
 						/>
 					) : (
-						<Icon className={cn("size-3.5", stepIconColor[step.status])} />
+						<Icon
+							className={cn(
+								"size-3.5",
+								CHAIN_OF_THOUGHT_STEP_ICON_CLASS[step.status]
+							)}
+						/>
 					)}
 				</div>
 				{!isLast && <div className="mt-1 w-px flex-1 bg-border/50" />}
@@ -104,7 +50,7 @@ const StepRow = ({ step, isLast }: { step: ChainStep; isLast: boolean }) => {
 			<div
 				className={cn(
 					"pt-1 pb-4 text-sm leading-snug",
-					stepTextColor[step.status]
+					CHAIN_OF_THOUGHT_STEP_TEXT_CLASS[step.status]
 				)}
 			>
 				{label}

@@ -83,7 +83,6 @@ export const AiFeedbackPanel = ({ feedback, criteria }: Props) => {
 
 	return (
 		<div className="flex flex-1 flex-col overflow-y-auto">
-			{/* Score hero */}
 			<div className="border-border/40 border-b bg-linear-to-br from-muted/40 to-background px-5 py-6">
 				<div className="flex items-center gap-5">
 					<div className="relative size-[72px] shrink-0">
@@ -151,7 +150,6 @@ export const AiFeedbackPanel = ({ feedback, criteria }: Props) => {
 			</div>
 
 			<div className="flex flex-col gap-5 px-5 py-5">
-				{/* Criteria breakdown */}
 				{feedback.criteriaScores.length > 0 && (
 					<section>
 						<div className="mb-3 flex items-center gap-2">
@@ -200,7 +198,6 @@ export const AiFeedbackPanel = ({ feedback, criteria }: Props) => {
 					</section>
 				)}
 
-				{/* Main points */}
 				{feedback.mainPoints.length > 0 && (
 					<section>
 						<div className="mb-3 flex items-center gap-2">
@@ -222,7 +219,6 @@ export const AiFeedbackPanel = ({ feedback, criteria }: Props) => {
 					</section>
 				)}
 
-				{/* Improvements */}
 				{feedback.improvements.length > 0 && (
 					<section>
 						<div className="mb-3 flex items-center gap-2">

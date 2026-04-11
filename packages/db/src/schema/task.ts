@@ -29,6 +29,9 @@ export const task = pgTable(
 		languageId: text("language_id")
 			.notNull()
 			.references(() => language.id),
+		starterFiles: jsonb("starter_files").$type<Record<string, string>>(),
+		entryFile: text("entry_file"),
+		readOnlyFiles: jsonb("read_only_files").$type<string[]>(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()
@@ -88,6 +91,7 @@ export const submission = pgTable(
 			.notNull()
 			.references(() => task.id, { onDelete: "cascade" }),
 		code: text("code").notNull(),
+		sandboxFiles: jsonb("sandbox_files").$type<Record<string, string>>(),
 		languageId: text("language_id")
 			.notNull()
 			.references(() => language.id),

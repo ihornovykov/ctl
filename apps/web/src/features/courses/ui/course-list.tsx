@@ -1,6 +1,7 @@
 import { Skeleton } from "@ctl/ui/components/skeleton";
-
 import { useCourses } from "../hooks/use-courses";
+import { COURSE_LIST_SECTION_HEADING_CLASS } from "../lib/constants";
+import { partitionCoursesByStack } from "../lib/utils";
 import { CourseCard } from "./course-card";
 
 const CourseCardSkeleton = () => (
@@ -24,9 +25,9 @@ export const CourseList = () => {
 	if (isPending) {
 		return (
 			<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-				{Array.from({ length: 6 }).map((_, i) => (
+				{Array.from({ length: 6 }).map((_, index) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
-					<CourseCardSkeleton key={i} />
+					<CourseCardSkeleton key={index} />
 				))}
 			</div>
 		);
@@ -43,11 +44,41 @@ export const CourseList = () => {
 		);
 	}
 
+	const { languageCourses, frameworkCourses } =
+		partitionCoursesByStack(courses);
+
 	return (
-		<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-			{courses.map((course, i) => (
-				<CourseCard course={course} index={i} key={course.id} />
-			))}
+		<div className="space-y-16">
+			{languageCourses.length > 0 ? (
+				<section>
+					<h2 className={COURSE_LIST_SECTION_HEADING_CLASS}>Languages</h2>
+					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+						{languageCourses.map((course, i) => (
+							<CourseCard course={course} index={i} key={course.id} />
+						))}
+					</div>
+				</section>
+			) : null}
+			{frameworkCourses.length > 0 ? (
+				<section
+					className={
+						languageCourses.length > 0
+							? "border-border/40 border-t pt-16"
+							: undefined
+					}
+				>
+					<h2 className={COURSE_LIST_SECTION_HEADING_CLASS}>Frameworks</h2>
+					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+						{frameworkCourses.map((course, i) => (
+							<CourseCard
+								course={course}
+								index={languageCourses.length + i}
+								key={course.id}
+							/>
+						))}
+					</div>
+				</section>
+			) : null}
 		</div>
 	);
 };

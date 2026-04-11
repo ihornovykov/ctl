@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { useLesson } from "@/features/courses";
-import { isMockSandboxLesson } from "@/features/sandbox";
 import { SandboxWorkspaceView, TaskWorkspaceView } from "@/views/courses";
 
 export const Route = createFileRoute("/courses/$slug/lessons/$lessonSlug/task")(
@@ -32,7 +31,8 @@ const TaskWorkspaceRouter = ({ courseSlug, lessonSlug }: Props) => {
 		);
 	}
 
-	if (isMockSandboxLesson(courseSlug, lessonSlug)) {
+	const langId = lesson.course.language.id;
+	if (langId === "react" || langId === "vue") {
 		return (
 			<SandboxWorkspaceView courseSlug={courseSlug} lessonSlug={lessonSlug} />
 		);

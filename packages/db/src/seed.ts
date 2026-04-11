@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { notInArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import {
@@ -10,7 +11,13 @@ import {
 	taskTest,
 } from "./schema";
 
-const db = drizzle(process.env.DATABASE_URL!, { logger: false });
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+	console.error("DATABASE_URL is required to run seed");
+	process.exit(1);
+}
+
+const db = drizzle(databaseUrl, { logger: false });
 
 const languages = [
 	{
@@ -60,6 +67,22 @@ const languages = [
 		dockerImage: "gcc:14",
 		fileExtension: ".cpp",
 		monacoLanguage: "cpp",
+	},
+	{
+		id: "react",
+		name: "React",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+		dockerImage: "ctl-playground:latest",
+		fileExtension: ".tsx",
+		monacoLanguage: "typescript",
+	},
+	{
+		id: "vue",
+		name: "Vue",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg",
+		dockerImage: "ctl-playground:latest",
+		fileExtension: ".vue",
+		monacoLanguage: "vue",
 	},
 ] as const;
 
@@ -196,7 +219,159 @@ const courses = [
 		sortOrder: 6,
 		isPublished: true,
 	},
+	{
+		id: "course-react-fundamentals",
+		languageId: "react",
+		title: "React Fundamentals",
+		slug: "react-fundamentals",
+		shortDescription:
+			"Build interactive UIs with components, JSX, state, and hooks in a live Vite playground.",
+		description: `Learn React by editing real \`.tsx\` files with instant preview. This course covers components, JSX, props, state, and effects — all in a browser-based sandbox backed by Vite and Vitest.
+
+**Prerequisites:** Basic JavaScript.
+
+**What you'll learn:**
+- Function components and JSX
+- Props and one-way data flow
+- \`useState\` and \`useEffect\`
+- Testing components with Vitest`,
+		difficulty: "beginner",
+		estimatedHours: 12,
+		sortOrder: 7,
+		isPublished: true,
+	},
+	{
+		id: "course-vue-fundamentals",
+		languageId: "vue",
+		title: "Vue Fundamentals",
+		slug: "vue-fundamentals",
+		shortDescription:
+			"Learn Vue 3 with single-file components, reactivity, and composition in a live dev playground.",
+		description: `Vue pairs approachable templates with powerful reactivity. Work through lessons in a real Vite + Vue project with tests and live preview.
+
+**Prerequisites:** Basic JavaScript.
+
+**What you'll learn:**
+- Single-file components (SFC)
+- Template syntax and directives
+- \`ref\`, \`reactive\`, and \`computed\`
+- Testing with Vitest and Vue Test Utils`,
+		difficulty: "beginner",
+		estimatedHours: 12,
+		sortOrder: 8,
+		isPublished: true,
+	},
 ];
+
+const FRAMEWORK_TASK_TESTING_HINT = `
+
+### How to verify your solution
+
+- Open the **Preview** tab for a live view while you edit \`App.tsx\` or \`App.vue\`.
+- Click **Run Tests** in the toolbar to execute Vitest in the sandbox. All tests must pass before **Submit** unlocks.
+`;
+
+const FRAMEWORK_EXAMPLE_REACT_HELLO = `
+
+### Example
+
+\`\`\`tsx
+export default function App() {
+  return (
+    <main>
+      <h1>Hello React</h1>
+    </main>
+  );
+}
+\`\`\``;
+
+const FRAMEWORK_EXAMPLE_REACT_COUNTER = `
+
+### Example
+
+\`\`\`tsx
+import { useState } from "react";
+
+export default function App() {
+  const [count, setCount] = useState(0);
+  return (
+    <main style={{ fontFamily: "system-ui", padding: 24 }}>
+      <p>Count: {count}</p>
+      <button type="button" onClick={() => setCount((c) => c + 1)}>
+        Click
+      </button>
+    </main>
+  );
+}
+\`\`\``;
+
+const FRAMEWORK_EXAMPLE_REACT_LIST = `
+
+### Example
+
+\`\`\`tsx
+const items = ["alpha", "beta", "gamma"];
+
+export default function App() {
+  return (
+    <main style={{ fontFamily: "system-ui", padding: 24 }}>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+\`\`\``;
+
+const FRAMEWORK_EXAMPLE_VUE_HELLO = `
+
+### Example
+
+\`\`\`vue
+<template>
+  <main style="font-family: system-ui; padding: 24px">
+    <h1>Hello Vue</h1>
+  </main>
+</template>
+\`\`\``;
+
+const FRAMEWORK_EXAMPLE_VUE_COUNTER = `
+
+### Example
+
+\`\`\`vue
+<script setup lang="ts">
+import { ref } from "vue";
+const count = ref(0);
+</script>
+
+<template>
+  <main style="font-family: system-ui; padding: 24px">
+    <p>Count: {{ count }}</p>
+    <button type="button" @click="count++">Click</button>
+  </main>
+</template>
+\`\`\``;
+
+const FRAMEWORK_EXAMPLE_VUE_GREETING = `
+
+### Example
+
+\`\`\`vue
+<script setup lang="ts">
+import { computed, ref } from "vue";
+const name = ref("Ada");
+const greeting = computed(() => \`Hello, \${name.value}\`);
+</script>
+
+<template>
+  <main style="font-family: system-ui; padding: 24px">
+    <p>{{ greeting }}</p>
+  </main>
+</template>
+\`\`\``;
 
 const lessons = [
 	// JavaScript Fundamentals — 5 lessons
@@ -1451,6 +1626,83 @@ auto doubled = even | std::views::transform([](int n){ return n * 2; });
 \`\`\``,
 		sortOrder: 5,
 	},
+	{
+		id: "lesson-react-01",
+		courseId: "course-react-fundamentals",
+		title: "Your first component",
+		slug: "your-first-component",
+		description:
+			"Edit a React component and see it update instantly in the preview.",
+		content: `# Your first component
+
+Open \`src/App.tsx\` and change the JSX. The preview updates automatically.
+
+## Goal
+
+Render a level-1 heading with the exact text **Hello React**.${FRAMEWORK_EXAMPLE_REACT_HELLO}${FRAMEWORK_TASK_TESTING_HINT}`,
+		hasTask: true,
+		sortOrder: 1,
+	},
+	{
+		id: "lesson-react-02",
+		courseId: "course-react-fundamentals",
+		title: "State with useState",
+		slug: "state-with-usestate",
+		description: "Add local state and wire it to a button.",
+		content: `# useState
+
+Use \`useState\` so each button click increments a visible count starting at 0. Keep a **Click** button (tests find it by that name) and show the count as **Count: 0**, **Count: 1**, and so on.${FRAMEWORK_EXAMPLE_REACT_COUNTER}${FRAMEWORK_TASK_TESTING_HINT}`,
+		hasTask: true,
+		sortOrder: 2,
+	},
+	{
+		id: "lesson-react-03",
+		courseId: "course-react-fundamentals",
+		title: "Lists from data",
+		slug: "lists-from-data",
+		description: "Render an array of items with keys.",
+		content: `# Lists
+
+Map over an array of strings and render each inside a \`<ul>\` with one \`<li>\` per item. Use the item string as \`key\`.${FRAMEWORK_EXAMPLE_REACT_LIST}${FRAMEWORK_TASK_TESTING_HINT}`,
+		hasTask: true,
+		sortOrder: 3,
+	},
+	{
+		id: "lesson-vue-01",
+		courseId: "course-vue-fundamentals",
+		title: "Your first SFC",
+		slug: "your-first-sfc",
+		description: "Edit the template in App.vue and use the preview.",
+		content: `# Single-file component
+
+Update \`App.vue\` so the page shows a level-1 heading with the exact text **Hello Vue**.${FRAMEWORK_EXAMPLE_VUE_HELLO}${FRAMEWORK_TASK_TESTING_HINT}`,
+		hasTask: true,
+		sortOrder: 1,
+	},
+	{
+		id: "lesson-vue-02",
+		courseId: "course-vue-fundamentals",
+		title: "Reactivity with ref",
+		slug: "reactivity-with-ref",
+		description: "Use ref to drive the UI.",
+		content: `# ref
+
+Use \`ref(0)\` for the count. Each button click increments it. Label the button **Click** and show **Count:** with the value (e.g. **Count: 1** after one click).${FRAMEWORK_EXAMPLE_VUE_COUNTER}${FRAMEWORK_TASK_TESTING_HINT}`,
+		hasTask: true,
+		sortOrder: 2,
+	},
+	{
+		id: "lesson-vue-03",
+		courseId: "course-vue-fundamentals",
+		title: "Computed values",
+		slug: "computed-values",
+		description: "Derive display text with computed().",
+		content: `# computed
+
+Use \`computed\` to derive \`greeting\` from a \`ref\` \`name\` (starter uses \`"Ada"\`) so the page shows **Hello, Ada**.${FRAMEWORK_EXAMPLE_VUE_GREETING}${FRAMEWORK_TASK_TESTING_HINT}`,
+		hasTask: true,
+		sortOrder: 3,
+	},
 ] as const;
 
 const tasks = [
@@ -1992,6 +2244,184 @@ function transformUsers(users) {
 }
 `,
 	},
+	{
+		id: "task-react-01",
+		lessonId: "lesson-react-01",
+		languageId: "react",
+		description: `## Hello React
+
+Set the level-1 heading text to exactly **Hello React**.${FRAMEWORK_EXAMPLE_REACT_HELLO}${FRAMEWORK_TASK_TESTING_HINT}`,
+		starterCode: " ",
+		solutionCode: " ",
+		entryFile: "/src/App.tsx",
+		readOnlyFiles: ["/src/main.tsx"],
+		starterFiles: {
+			"/src/App.tsx": `export default function App() {
+  return (
+    <main style={{ fontFamily: "system-ui", padding: 24 }}>
+      <h1>Edit this heading</h1>
+    </main>
+  );
+}
+`,
+			"/src/main.tsx": `import { createRoot } from "react-dom/client";
+import App from "./App";
+
+const el = document.getElementById("root");
+if (el) createRoot(el).render(<App />);
+`,
+		},
+	},
+	{
+		id: "task-react-02",
+		lessonId: "lesson-react-02",
+		languageId: "react",
+		description: `## Click counter
+
+Use \`useState\` so each button click increments a visible count starting at 0. Keep a **Click** button (tests find it by that name) and show the count in text like **Count: 0** so it becomes **Count: 1** after one click.${FRAMEWORK_EXAMPLE_REACT_COUNTER}${FRAMEWORK_TASK_TESTING_HINT}`,
+		starterCode: " ",
+		solutionCode: " ",
+		entryFile: "/src/App.tsx",
+		readOnlyFiles: ["/src/main.tsx"],
+		starterFiles: {
+			"/src/App.tsx": `import { useState } from "react";
+
+export default function App() {
+  return (
+    <main style={{ fontFamily: "system-ui", padding: 24 }}>
+      <p>Count: 0</p>
+      <button type="button">Click</button>
+    </main>
+  );
+}
+`,
+			"/src/main.tsx": `import { createRoot } from "react-dom/client";
+import App from "./App";
+
+const el = document.getElementById("root");
+if (el) createRoot(el).render(<App />);
+`,
+		},
+	},
+	{
+		id: "task-react-03",
+		lessonId: "lesson-react-03",
+		languageId: "react",
+		description: `## Render a list
+
+Render \`items\` as a \`<ul>\` with one \`<li>\` per item. Use the item string as \`key\`.${FRAMEWORK_EXAMPLE_REACT_LIST}${FRAMEWORK_TASK_TESTING_HINT}`,
+		starterCode: " ",
+		solutionCode: " ",
+		entryFile: "/src/App.tsx",
+		readOnlyFiles: ["/src/main.tsx"],
+		starterFiles: {
+			"/src/App.tsx": `const items = ["alpha", "beta", "gamma"];
+
+export default function App() {
+  return (
+    <main style={{ fontFamily: "system-ui", padding: 24 }}>
+      <p>Render the list here</p>
+    </main>
+  );
+}
+`,
+			"/src/main.tsx": `import { createRoot } from "react-dom/client";
+import App from "./App";
+
+const el = document.getElementById("root");
+if (el) createRoot(el).render(<App />);
+`,
+		},
+	},
+	{
+		id: "task-vue-01",
+		lessonId: "lesson-vue-01",
+		languageId: "vue",
+		description: `## Hello Vue
+
+Set the level-1 heading text to exactly **Hello Vue**.${FRAMEWORK_EXAMPLE_VUE_HELLO}${FRAMEWORK_TASK_TESTING_HINT}`,
+		starterCode: " ",
+		solutionCode: " ",
+		entryFile: "/src/App.vue",
+		readOnlyFiles: ["/src/main.ts"],
+		starterFiles: {
+			"/src/App.vue": `<script setup lang="ts"></script>
+
+<template>
+  <main style="font-family: system-ui; padding: 24px">
+    <h1>Edit this heading</h1>
+  </main>
+</template>
+`,
+			"/src/main.ts": `import { createApp } from "vue";
+import App from "./App.vue";
+
+createApp(App).mount("#app");
+`,
+		},
+	},
+	{
+		id: "task-vue-02",
+		lessonId: "lesson-vue-02",
+		languageId: "vue",
+		description: `## Counter
+
+Use \`ref(0)\` for the count. Each button click increments it. Show **Count:** followed by the value (tests expect **Count: 1** after one click).${FRAMEWORK_EXAMPLE_VUE_COUNTER}${FRAMEWORK_TASK_TESTING_HINT}`,
+		starterCode: " ",
+		solutionCode: " ",
+		entryFile: "/src/App.vue",
+		readOnlyFiles: ["/src/main.ts"],
+		starterFiles: {
+			"/src/App.vue": `<script setup lang="ts">
+import { ref } from "vue";
+const count = ref(0);
+</script>
+
+<template>
+  <main style="font-family: system-ui; padding: 24px">
+    <p>Count: {{ count }}</p>
+    <button type="button">Click</button>
+  </main>
+</template>
+`,
+			"/src/main.ts": `import { createApp } from "vue";
+import App from "./App.vue";
+
+createApp(App).mount("#app");
+`,
+		},
+	},
+	{
+		id: "task-vue-03",
+		lessonId: "lesson-vue-03",
+		languageId: "vue",
+		description: `## Greeting
+
+Use \`computed\` to derive \`greeting\` from a \`ref\` \`name\` (starter uses \`"Ada"\`) so the page shows **Hello, Ada**.${FRAMEWORK_EXAMPLE_VUE_GREETING}${FRAMEWORK_TASK_TESTING_HINT}`,
+		starterCode: " ",
+		solutionCode: " ",
+		entryFile: "/src/App.vue",
+		readOnlyFiles: ["/src/main.ts"],
+		starterFiles: {
+			"/src/App.vue": `<script setup lang="ts">
+import { computed, ref } from "vue";
+const name = ref("Ada");
+const greeting = computed(() => "fix me");
+</script>
+
+<template>
+  <main style="font-family: system-ui; padding: 24px">
+    <p>{{ greeting }}</p>
+  </main>
+</template>
+`,
+			"/src/main.ts": `import { createApp } from "vue";
+import App from "./App.vue";
+
+createApp(App).mount("#app");
+`,
+		},
+	},
 ];
 
 const taskTests = [
@@ -2417,6 +2847,112 @@ if (JSON.stringify(users) !== original) throw new Error("Original array was muta
 console.log(JSON.stringify({ passed: true }));`,
 		sortOrder: 4,
 	},
+
+	{
+		id: "test-react-01-01",
+		taskId: "task-react-01",
+		title: "heading text is Hello React",
+		testCode: `import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import App from "./App";
+
+describe("App", () => {
+  it("heading", () => {
+    render(<App />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hello React");
+  });
+});
+`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-react-02-01",
+		taskId: "task-react-02",
+		title: "click increments count",
+		testCode: `import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import App from "./App";
+
+describe("App", () => {
+  it("counter", () => {
+    render(<App />);
+    const btn = screen.getByRole("button", { name: /click/i });
+    fireEvent.click(btn);
+    expect(screen.getByText(/count:\\s*1/i)).toBeTruthy();
+  });
+});
+`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-react-03-01",
+		taskId: "task-react-03",
+		title: "renders three list items",
+		testCode: `import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import App from "./App";
+
+describe("App", () => {
+  it("list", () => {
+    render(<App />);
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+  });
+});
+`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-vue-01-01",
+		taskId: "task-vue-01",
+		title: "heading text is Hello Vue",
+		testCode: `import { mount } from "@vue/test-utils";
+import { describe, expect, it } from "vitest";
+import App from "./App.vue";
+
+describe("App", () => {
+  it("heading", () => {
+    const w = mount(App);
+    expect(w.get("h1").text()).toBe("Hello Vue");
+  });
+});
+`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-vue-02-01",
+		taskId: "task-vue-02",
+		title: "click increments count",
+		testCode: `import { mount } from "@vue/test-utils";
+import { describe, expect, it } from "vitest";
+import App from "./App.vue";
+
+describe("App", () => {
+  it("counter", async () => {
+    const w = mount(App);
+    await w.get("button").trigger("click");
+    expect(w.text()).toMatch(/count:\\s*1/i);
+  });
+});
+`,
+		sortOrder: 1,
+	},
+	{
+		id: "test-vue-03-01",
+		taskId: "task-vue-03",
+		title: "greeting uses name",
+		testCode: `import { mount } from "@vue/test-utils";
+import { describe, expect, it } from "vitest";
+import App from "./App.vue";
+
+describe("App", () => {
+  it("greeting", () => {
+    const w = mount(App);
+    expect(w.text()).toContain("Hello, Ada");
+  });
+});
+`,
+		sortOrder: 1,
+	},
 ];
 
 const gradingCriteriaData = [
@@ -2650,9 +3186,178 @@ const gradingCriteriaData = [
 		maxScore: 3,
 		sortOrder: 3,
 	},
+
+	{
+		id: "criteria-react-01-01",
+		taskId: "task-react-01",
+		name: "Correctness",
+		description: "The heading displays the required text exactly.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-react-01-02",
+		taskId: "task-react-01",
+		name: "JSX structure",
+		description: "Uses semantic markup (main, h1) appropriately.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-react-01-03",
+		taskId: "task-react-01",
+		name: "Style",
+		description: "Code is readable and idiomatic React.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+	{
+		id: "criteria-react-02-01",
+		taskId: "task-react-02",
+		name: "Correctness",
+		description: "useState drives the counter; clicks increment correctly.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-react-02-02",
+		taskId: "task-react-02",
+		name: "Hooks",
+		description: "Uses useState appropriately without unnecessary state.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-react-02-03",
+		taskId: "task-react-02",
+		name: "UX",
+		description: "Button is accessible and label is clear.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+	{
+		id: "criteria-react-03-01",
+		taskId: "task-react-03",
+		name: "Correctness",
+		description: "All items render as list items with stable keys.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-react-03-02",
+		taskId: "task-react-03",
+		name: "Lists in React",
+		description: "Uses map over the array and supplies keys.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-react-03-03",
+		taskId: "task-react-03",
+		name: "Readability",
+		description: "JSX is clear and concise.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+	{
+		id: "criteria-vue-01-01",
+		taskId: "task-vue-01",
+		name: "Correctness",
+		description: "The heading displays the required text exactly.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-vue-01-02",
+		taskId: "task-vue-01",
+		name: "SFC structure",
+		description: "Template and script blocks are used appropriately.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-vue-01-03",
+		taskId: "task-vue-01",
+		name: "Style",
+		description: "Code is readable and idiomatic Vue.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+	{
+		id: "criteria-vue-02-01",
+		taskId: "task-vue-02",
+		name: "Correctness",
+		description: "ref updates on click and the template reflects it.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-vue-02-02",
+		taskId: "task-vue-02",
+		name: "Reactivity",
+		description: "Uses ref from vue correctly.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-vue-02-03",
+		taskId: "task-vue-02",
+		name: "Template",
+		description: "Bindings and event handlers are clear.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
+	{
+		id: "criteria-vue-03-01",
+		taskId: "task-vue-03",
+		name: "Correctness",
+		description: "Computed greeting includes the current name value.",
+		maxScore: 4,
+		sortOrder: 1,
+	},
+	{
+		id: "criteria-vue-03-02",
+		taskId: "task-vue-03",
+		name: "Composition API",
+		description: "Uses computed() appropriately.",
+		maxScore: 3,
+		sortOrder: 2,
+	},
+	{
+		id: "criteria-vue-03-03",
+		taskId: "task-vue-03",
+		name: "Readability",
+		description: "Script setup code is clear.",
+		maxScore: 3,
+		sortOrder: 3,
+	},
 ];
 
+const cleanupSeedTables = async () => {
+	const languageIds = languages.map((row) => row.id);
+	const courseIds = courses.map((row) => row.id);
+	const lessonIds = lessons.map((row) => row.id);
+	const taskIds = tasks.map((row) => row.id);
+	const taskTestIds = taskTests.map((row) => row.id);
+	const gradingCriteriaIds = gradingCriteriaData.map((row) => row.id);
+
+	console.log("Cleaning up rows removed from seed...");
+
+	await db
+		.delete(gradingCriteria)
+		.where(notInArray(gradingCriteria.id, gradingCriteriaIds));
+	await db.delete(taskTest).where(notInArray(taskTest.id, taskTestIds));
+	await db.delete(task).where(notInArray(task.id, taskIds));
+	await db.delete(lesson).where(notInArray(lesson.id, lessonIds));
+	await db.delete(course).where(notInArray(course.id, courseIds));
+	await db.delete(language).where(notInArray(language.id, languageIds));
+
+	console.log("  Cleanup done.");
+};
+
 async function seed() {
+	await cleanupSeedTables();
+
 	console.log("Seeding languages...");
 	await db
 		.insert(language)
@@ -2715,6 +3420,9 @@ async function seed() {
 				description: task.description,
 				starterCode: task.starterCode,
 				solutionCode: task.solutionCode,
+				starterFiles: task.starterFiles,
+				entryFile: task.entryFile,
+				readOnlyFiles: task.readOnlyFiles,
 			},
 		});
 	console.log(`  Inserted/updated ${tasks.length} tasks`);

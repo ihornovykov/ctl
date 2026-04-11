@@ -27,16 +27,7 @@ import {
 	YAxis,
 } from "recharts";
 
-const LANG_COLOR: Record<string, string> = {
-	javascript: "#f59e0b",
-	typescript: "#3b82f6",
-	go: "#06b6d4",
-	python: "#22c55e",
-	c: "#94a3b8",
-	cpp: "#8b5cf6",
-};
-const DEFAULT_COLOR = "#0891b2";
-const langColor = (id: string) => LANG_COLOR[id] ?? DEFAULT_COLOR;
+import { getDashboardChartLangColor } from "../lib/utils";
 
 type LanguageActivityProps = { data: WeeklyLanguageActivity };
 
@@ -49,7 +40,10 @@ const LanguageStackedActivityChart = ({ data }: LanguageActivityProps) => {
 	);
 
 	const chartConfig = Object.fromEntries(
-		languages.map((l) => [l.id, { label: l.name, color: langColor(l.id) }])
+		languages.map((l) => [
+			l.id,
+			{ label: l.name, color: getDashboardChartLangColor(l.id) },
+		])
 	) satisfies ChartConfig;
 
 	if (languages.length === 0) {
@@ -152,7 +146,10 @@ const LanguageDonut = ({ enrollments }: LangProps) => {
 	}));
 
 	const chartConfig = Object.fromEntries(
-		data.map((l) => [l.id, { label: l.name, color: langColor(l.id) }])
+		data.map((l) => [
+			l.id,
+			{ label: l.name, color: getDashboardChartLangColor(l.id) },
+		])
 	) satisfies ChartConfig;
 
 	if (data.length === 0) {
@@ -211,7 +208,7 @@ const LanguageDonut = ({ enrollments }: LangProps) => {
 							<div className="flex items-center gap-2">
 								<span
 									className="inline-block size-2.5 shrink-0 rounded-full"
-									style={{ background: langColor(l.id) }}
+									style={{ background: getDashboardChartLangColor(l.id) }}
 								/>
 								<span className="font-medium">{l.name}</span>
 							</div>
@@ -255,7 +252,7 @@ const CourseProgressBars = ({ enrollments }: ProgressProps) => {
 						e.totalLessons > 0
 							? Math.round((e.completedLessons / e.totalLessons) * 100)
 							: 0;
-					const color = langColor(e.languageId);
+					const color = getDashboardChartLangColor(e.languageId);
 					return (
 						<div key={e.courseId}>
 							<div className="mb-1.5 flex items-center justify-between gap-3">

@@ -1,28 +1,24 @@
 import { Button } from "@ctl/ui/components/button";
 import { cn } from "@ctl/ui/lib/utils";
-import {
-	BookOpen,
-	Cpu,
-	Eye,
-	PanelLeftClose,
-	PanelLeftOpen,
-	TestTube,
-} from "lucide-react";
+import { Cpu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { TestResults } from "@/features/tasks";
+import { ConsoleOutput, TestResults } from "@/features/tasks";
 import { useSandboxMainSplit } from "../hooks/use-sandbox-main-split";
+import { useSandboxPlaygroundLogs } from "../hooks/use-sandbox-playground-logs";
 import { useSandboxPreview } from "../hooks/use-sandbox-preview";
 import { useSandboxRunTests } from "../hooks/use-sandbox-run-tests";
-import { buildSandboxTreeItems } from "../lib/file-tree";
-import type {
-	SandboxSubmissionOutput,
-	SandboxTask,
-} from "../lib/sandbox-types";
+import {
+	SANDBOX_WORKSPACE_AUTO_SAVE_DELAY_MS,
+	SANDBOX_WORKSPACE_RIGHT_TABS,
+	type SandboxSubmissionOutput,
+	type SandboxTask,
+} from "../lib/constants";
 import {
 	buildSandboxFiles,
+	buildSandboxTreeItems,
 	loadSavedFiles,
 	saveFiles,
-} from "../lib/sandpack-config";
+} from "../lib/utils";
 import {
 	type SandboxActiveTab,
 	useSandboxWorkspace,
@@ -35,13 +31,178 @@ import { SandboxPreviewStatus } from "./sandbox-preview-status";
 import { SandboxToolbar } from "./sandbox-toolbar";
 import "./sandbox-workspace.css";
 
-const AUTO_SAVE_DELAY = 1000;
+type SandboxPreviewPanelProps = {
+	html: string | null;
+	previewUrl: string | null;
+	error: string | null;
+	isBuilding: boolean;
+};
 
-const TABS = [
-	{ id: "overview" as const, label: "Overview", icon: BookOpen },
-	{ id: "preview" as const, label: "Preview", icon: Eye },
-	{ id: "results" as const, label: "Results", icon: TestTube },
-] as const;
+const SandboxPreviewPanel = ({
+	html,
+	previewUrl,
+	error,
+	isBuilding,
+}: SandboxPreviewPanelProps) => (
+	<div className="relative z-0 flex min-h-0 w-full min-w-0 flex-1 flex-col">
+		<SandboxPreviewIframe html={html} previewSrc={previewUrl} />
+		<SandboxPreviewStatus error={error} isBuilding={isBuilding} />
+	</div>
+);
+
+type SandboxRightTabsBarProps = {
+	activeTab: SandboxActiveTab;
+	setActiveTab: (tab: SandboxActiveTab) => void;
+	testResults: Array<{ title: string; passed: boolean; error?: string }>;
+	hasAiFeedback: boolean;
+	hasConsoleText: boolean;
+	showConsoleTab: boolean;
+};
+
+const SandboxRightTabsBar = ({
+	activeTab,
+	setActiveTab,
+	testResults,
+	hasAiFeedback,
+	hasConsoleText,
+	showConsoleTab,
+}: SandboxRightTabsBarProps) => (
+	<div className="flex h-11 shrink-0 items-center border-border/40 border-b px-2">
+		{(showConsoleTab
+			? SANDBOX_WORKSPACE_RIGHT_TABS
+			: SANDBOX_WORKSPACE_RIGHT_TABS.filter((t) => t.id !== "console")
+		).map(({ id, label, icon: Icon }) => {
+			const isActive = activeTab === id;
+			const showBadge =
+				(id === "results" && (testResults.length > 0 || hasAiFeedback)) ||
+				(id === "console" && hasConsoleText);
+			return (
+				<button
+					className={cn(
+						"relative flex h-full items-center gap-1.5 border-b-2 px-3 font-medium text-sm transition-colors",
+						isActive
+							? "border-primary text-foreground"
+							: "border-transparent text-muted-foreground hover:text-foreground"
+					)}
+					key={id}
+					onClick={() => setActiveTab(id)}
+					type="button"
+				>
+					<Icon className="size-3.5" />
+					{label}
+					{showBadge ? (
+						<span
+							className={cn(
+								"size-1.5 rounded-full",
+								hasAiFeedback && id === "results" ? "bg-primary" : "bg-sky-500"
+							)}
+						/>
+					) : null}
+				</button>
+			);
+		})}
+
+		{hasAiFeedback ? (
+			<div className="ml-auto flex items-center gap-1.5 px-2">
+				<Cpu className="size-3.5 text-primary" />
+				<span className="font-semibold text-primary text-xs">AI Graded</span>
+			</div>
+		) : null}
+	</div>
+);
+
+type SandboxRightPanelLayersProps = {
+	activeTab: SandboxActiveTab;
+	html: string | null;
+	previewUrl: string | null;
+	error: string | null;
+	isBuilding: boolean;
+	task: SandboxTask;
+	currentSubmission: SandboxSubmissionOutput | null;
+	viteSandboxEnabled: boolean;
+	viteSessionId: string | null;
+	isReadOnly: boolean;
+	consoleOutput: string;
+	consoleError: string;
+	consoleExitCode: number | null;
+	testResults: Array<{ title: string; passed: boolean; error?: string }>;
+};
+
+const SandboxRightPanelLayers = ({
+	activeTab,
+	html,
+	previewUrl,
+	error,
+	isBuilding,
+	task,
+	currentSubmission,
+	viteSandboxEnabled,
+	viteSessionId,
+	isReadOnly,
+	consoleOutput,
+	consoleError,
+	consoleExitCode,
+	testResults,
+}: SandboxRightPanelLayersProps) => (
+	<div className="relative isolate min-h-0 flex-1 overflow-hidden">
+		<div
+			className={cn(
+				"absolute inset-0 z-0 flex min-h-0 flex-col overflow-hidden",
+				activeTab !== "preview" && "pointer-events-none opacity-0"
+			)}
+		>
+			<SandboxPreviewPanel
+				error={error}
+				html={html}
+				isBuilding={isBuilding}
+				previewUrl={previewUrl}
+			/>
+		</div>
+
+		{activeTab === "overview" ? (
+			<div className="absolute inset-0 z-10 flex min-h-0 min-w-0 flex-col overflow-hidden bg-background">
+				<SandboxDescription description={task.description} />
+			</div>
+		) : null}
+
+		{!isReadOnly && activeTab === "console" ? (
+			<div className="absolute inset-0 z-10 flex min-h-0 min-w-0 flex-col overflow-hidden bg-background">
+				<ConsoleOutput
+					emptyDescription={
+						viteSandboxEnabled
+							? "Dev server logs appear here when the preview session is running."
+							: "Set VITE_SANDBOX_VITE_ENABLED=true and use Docker preview to stream logs here."
+					}
+					emptyTitle="No console output yet"
+					exitCode={consoleExitCode}
+					isStreaming={
+						viteSandboxEnabled && Boolean(viteSessionId) && !isReadOnly
+					}
+					stderr={consoleError}
+					stdout={consoleOutput}
+				/>
+			</div>
+		) : null}
+
+		{activeTab === "results" ? (
+			<div className="absolute inset-0 z-10 flex min-h-0 min-w-0 flex-col overflow-hidden bg-background">
+				<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+					{currentSubmission?.aiFeedback ? (
+						<SandboxAiFeedback
+							criteria={task.criteria}
+							submission={currentSubmission}
+						/>
+					) : (
+						<TestResults
+							emptyHint="Click Run Tests or Submit to run all tests."
+							results={testResults}
+						/>
+					)}
+				</div>
+			</div>
+		) : null}
+	</div>
+);
 
 type Props = {
 	task: SandboxTask;
@@ -78,6 +239,10 @@ export const SandboxWorkspace = ({
 		setFiles,
 		updateFile,
 		setActiveFile,
+		viteSessionId,
+		consoleOutput,
+		consoleError,
+		consoleExitCode,
 	} = useSandboxWorkspace();
 
 	const { rowRef, splitGridTemplateColumns, onResizeHandlePointerDown } =
@@ -89,18 +254,11 @@ export const SandboxWorkspace = ({
 	const allTestsPassed =
 		testResults.length > 0 && testResults.every((r) => r.passed);
 
-	// Initialize files from task + saved progress
-	const taskDefinitionKey = JSON.stringify({
-		entryFile: task.entryFile,
-		readOnlyFiles: task.readOnlyFiles,
-		starterFiles: task.starterFiles,
-		tests: task.tests,
-	});
-
-	const submissionFilesKey =
-		existingSubmission === null
-			? "__no_submission__"
-			: JSON.stringify(existingSubmission.files ?? null);
+	useEffect(() => {
+		if (isReadOnly && activeTab === "console") {
+			setActiveTab("preview");
+		}
+	}, [isReadOnly, activeTab, setActiveTab]);
 
 	useEffect(() => {
 		const saved = loadSavedFiles(task.id);
@@ -108,9 +266,8 @@ export const SandboxWorkspace = ({
 			existingSubmission === null ? saved : (existingSubmission.files ?? saved);
 		const initialFiles = buildSandboxFiles(task, merged);
 		setFiles(initialFiles, task.entryFile);
-	}, [task.id, taskDefinitionKey, submissionFilesKey]);
+	}, [task, existingSubmission, setFiles]);
 
-	// Auto-save editable files to localStorage
 	useEffect(() => {
 		if (isReadOnly) {
 			return;
@@ -125,31 +282,39 @@ export const SandboxWorkspace = ({
 			if (Object.keys(editable).length > 0) {
 				saveFiles(task.id, editable);
 			}
-		}, AUTO_SAVE_DELAY);
+		}, SANDBOX_WORKSPACE_AUTO_SAVE_DELAY_MS);
 		return () => clearTimeout(timeout);
 	}, [files, task.id, isReadOnly]);
 
 	const { html, previewUrl, isBuilding, error, triggerNow } = useSandboxPreview(
 		{
-			sandboxTaskId: task.id,
-			enabled: !isReadOnly,
-			taskDefinitionKey,
-			submissionFilesKey,
+			task,
+			enabled: true,
 		}
 	);
+
+	const viteEnv = (
+		import.meta as unknown as { env: Record<string, string | undefined> }
+	).env.VITE_SANDBOX_VITE_ENABLED;
+	const viteSandboxEnabled = viteEnv === "true" || viteEnv === "1";
+
+	useSandboxPlaygroundLogs({
+		sessionId: viteSessionId,
+		enabled: viteSandboxEnabled && !isReadOnly,
+	});
 
 	const runTestsMutation = useSandboxRunTests({ sandboxTaskId: task.id });
 
 	const [isFileTreeVisible, setIsFileTreeVisible] = useState(true);
 
-	const filePathsSignature = useMemo(
+	const filesStructureKey = useMemo(
 		() => Object.keys(files).sort().join("|"),
 		[files]
 	);
 
 	const { items: sandboxTreeItems, rootId: sandboxTreeRootId } = useMemo(
 		() => buildSandboxTreeItems(files),
-		[filePathsSignature]
+		[files]
 	);
 
 	const activeCode = files[activeFile]?.code ?? "";
@@ -177,6 +342,7 @@ export const SandboxWorkspace = ({
 	);
 
 	const handleSubmit = () => {
+		setActiveTab("results");
 		const editable: Record<string, string> = {};
 		for (const [filePath, entry] of Object.entries(files)) {
 			if (!entry.readOnly) {
@@ -212,7 +378,6 @@ export const SandboxWorkspace = ({
 				ref={rowRef}
 				style={{ gridTemplateColumns: splitGridTemplateColumns }}
 			>
-				{/* Left panel: file tree + editor */}
 				<div className="relative z-10 flex min-h-0 w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-border/40 bg-background shadow-sm">
 					<div
 						className={cn(
@@ -241,7 +406,7 @@ export const SandboxWorkspace = ({
 									<SandboxFileTree
 										activeFile={activeFile}
 										items={sandboxTreeItems}
-										key={filePathsSignature}
+										key={filesStructureKey}
 										onSelectFile={setActiveFile}
 										rootId={sandboxTreeRootId}
 									/>
@@ -263,7 +428,6 @@ export const SandboxWorkspace = ({
 						)}
 					</div>
 
-					{/* Monaco editor */}
 					<div className="min-h-0 min-w-0 flex-1 overflow-hidden">
 						<SandboxCodeEditor
 							code={activeCode}
@@ -283,7 +447,6 @@ export const SandboxWorkspace = ({
 					</div>
 				</div>
 
-				{/* Resize handle */}
 				<button
 					aria-label="Drag to resize the editor and preview panels"
 					className="group relative z-20 flex w-full min-w-0 cursor-col-resize touch-none items-stretch justify-center self-stretch rounded-sm border-0 bg-transparent p-0 shadow-none outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -296,93 +459,32 @@ export const SandboxWorkspace = ({
 					/>
 				</button>
 
-				{/* Right panel: tabs + content */}
 				<div className="relative z-0 flex min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden rounded-xl border border-border/40 bg-background shadow-sm">
-					{/* Tab bar */}
-					<div className="flex h-11 shrink-0 items-center border-border/40 border-b px-2">
-						{TABS.map(({ id, label, icon: Icon }) => {
-							const isActive = activeTab === id;
-							const showBadge =
-								id === "results" && (testResults.length > 0 || hasAiFeedback);
-							return (
-								<button
-									className={cn(
-										"relative flex h-full items-center gap-1.5 border-b-2 px-3 font-medium text-sm transition-colors",
-										isActive
-											? "border-primary text-foreground"
-											: "border-transparent text-muted-foreground hover:text-foreground"
-									)}
-									key={id}
-									onClick={() => setActiveTab(id as SandboxActiveTab)}
-									type="button"
-								>
-									<Icon className="size-3.5" />
-									{label}
-									{showBadge && (
-										<span
-											className={cn(
-												"size-1.5 rounded-full",
-												hasAiFeedback && id === "results"
-													? "bg-primary"
-													: "bg-sky-500"
-											)}
-										/>
-									)}
-								</button>
-							);
-						})}
+					<SandboxRightTabsBar
+						activeTab={activeTab}
+						hasAiFeedback={hasAiFeedback}
+						hasConsoleText={Boolean(consoleOutput) || Boolean(consoleError)}
+						setActiveTab={setActiveTab}
+						showConsoleTab={!isReadOnly}
+						testResults={testResults}
+					/>
 
-						{hasAiFeedback && (
-							<div className="ml-auto flex items-center gap-1.5 px-2">
-								<Cpu className="size-3.5 text-primary" />
-								<span className="font-semibold text-primary text-xs">
-									AI Graded
-								</span>
-							</div>
-						)}
-					</div>
-
-					{/* Panel content */}
-					<div className="relative isolate min-h-0 flex-1 overflow-hidden">
-						{/* Preview — always mounted so it doesn't reset on tab switch */}
-						<div
-							className={cn(
-								"absolute inset-0 z-0 flex min-h-0 flex-col overflow-hidden",
-								activeTab !== "preview" && "pointer-events-none opacity-0"
-							)}
-						>
-							<div className="relative z-0 flex min-h-0 w-full min-w-0 flex-1 flex-col">
-								<SandboxPreviewIframe html={html} previewSrc={previewUrl} />
-								<SandboxPreviewStatus error={error} isBuilding={isBuilding} />
-							</div>
-						</div>
-
-						{/* Overview */}
-						{activeTab === "overview" && (
-							<div className="absolute inset-0 z-10 flex min-h-0 min-w-0 flex-col overflow-hidden bg-background">
-								{hasAiFeedback && currentSubmission?.aiFeedback ? (
-									<SandboxAiFeedback
-										criteria={task.criteria}
-										submission={currentSubmission}
-									/>
-								) : (
-									<SandboxDescription description={task.description} />
-								)}
-							</div>
-						)}
-
-						{/* Results */}
-						{activeTab === "results" && (
-							<div className="absolute inset-0 z-10 flex min-h-0 min-w-0 flex-col overflow-hidden bg-background">
-								<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-									<TestResults
-										emptyHint="Click Run Tests or Submit to run all tests."
-										results={testResults}
-									/>
-								</div>
-							</div>
-						)}
-					</div>
+					<SandboxRightPanelLayers
+						activeTab={activeTab}
+						consoleError={consoleError}
+						consoleExitCode={consoleExitCode}
+						consoleOutput={consoleOutput}
+						currentSubmission={currentSubmission}
+						error={error}
+						html={html}
+						isBuilding={isBuilding}
+						isReadOnly={isReadOnly}
+						previewUrl={previewUrl}
+						task={task}
+						testResults={testResults}
+						viteSandboxEnabled={viteSandboxEnabled}
+						viteSessionId={viteSessionId}
+					/>
 				</div>
 			</div>
 		</div>
