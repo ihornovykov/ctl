@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { authClient } from "@/shared/lib";
+import { authClient, oauthCallbackUrl } from "@/shared/lib";
 import { PasswordInput } from "@/shared/ui";
 import { AuthBrandPanel } from "./auth-brand-panel";
 import { GoogleOauthButton } from "./google-oauth-button";
@@ -70,7 +70,7 @@ export const SignUpForm = ({ className }: Props) => {
 		setIsGoogleLoading(true);
 		await authClient.signIn.social({
 			provider: "google",
-			callbackURL: "/dashboard",
+			callbackURL: oauthCallbackUrl("/dashboard"),
 		});
 	};
 

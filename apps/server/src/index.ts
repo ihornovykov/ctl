@@ -47,8 +47,7 @@ const fastify = Fastify({
 
 fastify.register(fastifyCors, baseCorsConfig);
 
-fastify.register(async (rpcApp) => {
-	// Fully utilize oRPC features by letting oRPC parse the request body.
+fastify.register((rpcApp) => {
 	rpcApp.addContentTypeParser("*", (_, _payload, done) => {
 		done(null, undefined);
 	});
@@ -83,11 +82,11 @@ fastify.route({
 		try {
 			const url = new URL(request.url, `http://${request.headers.host}`);
 			const headers = new Headers();
-			Object.entries(request.headers).forEach(([key, value]) => {
+			for (const [key, value] of Object.entries(request.headers)) {
 				if (value) {
 					headers.append(key, value.toString());
 				}
-			});
+			}
 			const req = new Request(url.toString(), {
 				method: request.method,
 				headers,
@@ -95,7 +94,9 @@ fastify.route({
 			});
 			const response = await auth.handler(req);
 			reply.status(response.status);
-			response.headers.forEach((value, key) => reply.header(key, value));
+			for (const [key, value] of response.headers) {
+				reply.header(key, value);
+			}
 			reply.send(response.body ? await response.text() : null);
 		} catch (error) {
 			fastify.log.error({ err: error }, "Authentication Error:");
@@ -139,9 +140,7 @@ fastify.post("/api/tasks/grade-stream", async (request, reply) => {
 	}
 });
 
-fastify.get("/", async () => {
-	return "OK";
-});
+fastify.get("/", () => "OK");
 
 fastify.listen({ port: 3000 }, (err) => {
 	if (err) {
