@@ -6,4 +6,5 @@ export default defineConfig({
 	outDir: "./dist",
 	clean: true,
 	noExternal: [/@ctl\/.*/],
+	external: ["dockerode", "docker-modem", "ssh2", "cpu-features"],
 });

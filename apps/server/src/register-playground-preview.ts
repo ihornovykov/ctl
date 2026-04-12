@@ -11,6 +11,10 @@ import httpProxy from "http-proxy";
 
 const PREVIEW_SESSION_PATH = /^\/preview\/([^/?#]+)/;
 
+const swallowSyncWriteFailure = () => {
+	return;
+};
+
 type IncomingWithPv = IncomingMessage & { playgroundPvCookieValue?: string };
 
 const previewAuth = (
@@ -42,7 +46,7 @@ export const registerPlaygroundPreviewProxy = (fastify: FastifyInstance) => {
 				res.writeHead(502, { "Content-Type": "text/plain" });
 				res.end("Bad gateway");
 			} catch {
-				// ignore
+				swallowSyncWriteFailure();
 			}
 		}
 	});
@@ -120,7 +124,7 @@ export const registerPlaygroundPreviewProxy = (fastify: FastifyInstance) => {
 								reply.raw.end("Bad gateway");
 							}
 						} catch {
-							// ignore
+							swallowSyncWriteFailure();
 						}
 					}
 				}

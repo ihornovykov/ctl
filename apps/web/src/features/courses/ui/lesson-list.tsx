@@ -2,7 +2,10 @@ import type { CourseDetail } from "@ctl/api/routers/courses/validation";
 import { Skeleton } from "@ctl/ui/components/skeleton";
 import { BookOpen, Lock } from "lucide-react";
 
+import { range } from "@/shared/lib";
 import { LessonItem } from "./lesson-item";
+
+const LESSON_LIST_SKELETON_COUNT = 5;
 
 type Props = {
 	course: CourseDetail;
@@ -10,12 +13,13 @@ type Props = {
 
 export const LessonListSkeleton = () => (
 	<div className="flex flex-col gap-0">
-		{Array.from({ length: 5 }).map((_, i) => (
-			// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+		{range(LESSON_LIST_SKELETON_COUNT).map((i) => (
 			<div className="flex gap-4" key={i}>
 				<div className="flex flex-col items-center">
 					<Skeleton className="size-10 rounded-full" />
-					{i < 4 && <Skeleton className="mt-1 min-h-8 w-px flex-1" />}
+					{i < LESSON_LIST_SKELETON_COUNT - 1 && (
+						<Skeleton className="mt-1 min-h-8 w-px flex-1" />
+					)}
 				</div>
 				<div className="mb-4 flex-1 rounded-2xl border border-border/40 bg-card/50 p-5">
 					<Skeleton className="mb-2 h-3 w-10" />

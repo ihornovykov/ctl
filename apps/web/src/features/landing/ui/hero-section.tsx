@@ -42,7 +42,7 @@ export const HeroSection = () => (
 					</p>
 
 					<div className="flex flex-wrap gap-3">
-						<Link to="/login">
+						<Link to="/auth/sign-in">
 							<Button className="gap-2" size="lg">
 								Start for free
 								<ArrowRight className="h-4 w-4" />

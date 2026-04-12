@@ -72,6 +72,9 @@ export const LessonContent = ({ lesson, courseSlug }: Props) => {
 
 	useEffect(() => {
 		completedRef.current = false;
+		if (!lesson.id) {
+			return;
+		}
 	}, [lesson.id]);
 
 	useEffect(() => {

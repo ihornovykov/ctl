@@ -23,13 +23,13 @@ export type FileWithPreview = {
 };
 
 export type FileUploadOptions = {
-	maxFiles?: number; // Only used when multiple is true, defaults to Infinity
-	maxSize?: number; // in bytes
+	maxFiles?: number;
+	maxSize?: number;
 	accept?: string;
-	multiple?: boolean; // Defaults to false
+	multiple?: boolean;
 	initialFiles?: FileMetadata[];
-	onFilesChange?: (files: FileWithPreview[]) => void; // Callback when files change
-	onFilesAdded?: (addedFiles: FileWithPreview[]) => void; // Callback when new files are added
+	onFilesChange?: (files: FileWithPreview[]) => void;
+	onFilesAdded?: (addedFiles: FileWithPreview[]) => void;
 	onError?: (errors: string[]) => void;
 };
 
@@ -55,6 +55,126 @@ export type FileUploadActions = {
 	) => InputHTMLAttributes<HTMLInputElement> & {
 		ref: React.Ref<HTMLInputElement>;
 	};
+};
+
+export const formatBytes = (bytes: number, decimals = 2): string => {
+	if (bytes === 0) {
+		return "0 Bytes";
+	}
+	const k = 1024;
+	const dm = decimals < 0 ? 0 : decimals;
+	const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+	const i = Math.floor(Math.log(bytes) / Math.log(k));
+	return Number.parseFloat((bytes / k ** i).toFixed(dm)) + sizes[i];
+};
+
+type UploadCandidate = File | FileMetadata;
+
+const fileExceedsMaxSizeMessage = (
+	file: UploadCandidate,
+	maxSize: number
+): string | null => {
+	if (file.size <= maxSize) {
+		return null;
+	}
+	return `File "${file.name}" exceeds the maximum size of ${formatBytes(maxSize)}.`;
+};
+
+const fileNotInAcceptListMessage = (
+	file: UploadCandidate,
+	accept: string
+): string | null => {
+	if (accept === "*") {
+		return null;
+	}
+	const acceptedTypes = accept.split(",").map((type) => type.trim());
+	const fileType = file instanceof File ? file.type || "" : file.type;
+	const lastSeg = file.name.split(".").pop();
+	const fileExtension = lastSeg ? `.${lastSeg}` : "";
+	const accepted = acceptedTypes.some((type) => {
+		if (type.startsWith(".")) {
+			return fileExtension.toLowerCase() === type.toLowerCase();
+		}
+		if (type.endsWith("/*")) {
+			const baseType = type.split("/")[0];
+			return fileType.startsWith(`${baseType}/`);
+		}
+		return fileType === type;
+	});
+	if (accepted) {
+		return null;
+	}
+	return `File "${file.name}" is not an accepted file type.`;
+};
+
+const validationMessageForUpload = (
+	file: UploadCandidate,
+	maxSize: number,
+	accept: string
+): string | null =>
+	fileExceedsMaxSizeMessage(file, maxSize) ??
+	fileNotInAcceptListMessage(file, accept);
+
+type PartitionIncomingArgs = {
+	newFiles: File[];
+	multiple: boolean;
+	maxFiles: number;
+	maxSize: number;
+	existingFiles: FileWithPreview[];
+	validate: (f: UploadCandidate) => string | null;
+	generateUniqueId: (f: UploadCandidate) => string;
+	createPreview: (f: UploadCandidate) => string | undefined;
+};
+
+type PartitionIncomingResult =
+	| { outcome: "duplicate" }
+	| { outcome: "maxFiles"; errors: string[] }
+	| { outcome: "batch"; validFiles: FileWithPreview[]; errors: string[] };
+
+const partitionIncomingUploadFiles = (
+	args: PartitionIncomingArgs
+): PartitionIncomingResult => {
+	const errors: string[] = [];
+	const validFiles: FileWithPreview[] = [];
+	if (
+		args.multiple &&
+		args.maxFiles !== Number.POSITIVE_INFINITY &&
+		args.existingFiles.length + args.newFiles.length > args.maxFiles
+	) {
+		return {
+			outcome: "maxFiles",
+			errors: [`You can only upload a maximum of ${args.maxFiles} files.`],
+		};
+	}
+	for (const file of args.newFiles) {
+		if (args.multiple) {
+			const isDup = args.existingFiles.some(
+				(f) => f.file.name === file.name && f.file.size === file.size
+			);
+			if (isDup) {
+				return { outcome: "duplicate" };
+			}
+		}
+		if (file.size > args.maxSize) {
+			errors.push(
+				args.multiple
+					? `Some files exceed the maximum size of ${formatBytes(args.maxSize)}.`
+					: `File exceeds the maximum size of ${formatBytes(args.maxSize)}.`
+			);
+			continue;
+		}
+		const msg = args.validate(file);
+		if (msg) {
+			errors.push(msg);
+		} else {
+			validFiles.push({
+				file,
+				id: args.generateUniqueId(file),
+				preview: args.createPreview(file),
+			});
+		}
+	}
+	return { outcome: "batch", validFiles, errors };
 };
 
 export const useFileUpload = (
@@ -84,39 +204,8 @@ export const useFileUpload = (
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const validateFile = useCallback(
-		// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: vendored ReUI file upload hook
-		(file: File | FileMetadata): string | null => {
-			if (file instanceof File) {
-				if (file.size > maxSize) {
-					return `File "${file.name}" exceeds the maximum size of ${formatBytes(maxSize)}.`;
-				}
-			} else if (file.size > maxSize) {
-				return `File "${file.name}" exceeds the maximum size of ${formatBytes(maxSize)}.`;
-			}
-
-			if (accept !== "*") {
-				const acceptedTypes = accept.split(",").map((type) => type.trim());
-				const fileType = file instanceof File ? file.type || "" : file.type;
-				const fileExtension = `.${file instanceof File ? file.name.split(".").pop() : file.name.split(".").pop()}`;
-
-				const isAccepted = acceptedTypes.some((type) => {
-					if (type.startsWith(".")) {
-						return fileExtension.toLowerCase() === type.toLowerCase();
-					}
-					if (type.endsWith("/*")) {
-						const baseType = type.split("/")[0];
-						return fileType.startsWith(`${baseType}/`);
-					}
-					return fileType === type;
-				});
-
-				if (!isAccepted) {
-					return `File "${file instanceof File ? file.name : file.name}" is not an accepted file type.`;
-				}
-			}
-
-			return null;
-		},
+		(file: UploadCandidate) =>
+			validationMessageForUpload(file, maxSize, accept),
 		[accept, maxSize]
 	);
 
@@ -139,7 +228,6 @@ export const useFileUpload = (
 
 	const clearFiles = useCallback(() => {
 		setState((prev) => {
-			// Clean up object URLs
 			for (const file of prev.files) {
 				if (
 					file.preview &&
@@ -166,99 +254,45 @@ export const useFileUpload = (
 	}, [onFilesChange]);
 
 	const addFiles = useCallback(
-		// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: vendored ReUI file upload hook
 		(newFiles: FileList | File[]) => {
 			if (!newFiles || newFiles.length === 0) {
 				return;
 			}
-
 			const newFilesArray = Array.from(newFiles);
-			const errors: string[] = [];
-
-			// Clear existing errors when new files are uploaded
 			setState((prev) => ({ ...prev, errors: [] }));
-
-			// In single file mode, clear existing files first
 			if (!multiple) {
 				clearFiles();
 			}
-
-			// Check if adding these files would exceed maxFiles (only in multiple mode)
-			if (
-				multiple &&
-				maxFiles !== Number.POSITIVE_INFINITY &&
-				state.files.length + newFilesArray.length > maxFiles
-			) {
-				errors.push(`You can only upload a maximum of ${maxFiles} files.`);
-				onError?.(errors);
-				setState((prev) => ({ ...prev, errors }));
+			const partition = partitionIncomingUploadFiles({
+				newFiles: newFilesArray,
+				multiple,
+				maxFiles,
+				maxSize,
+				existingFiles: state.files,
+				validate: validateFile,
+				generateUniqueId,
+				createPreview,
+			});
+			if (partition.outcome === "duplicate") {
 				return;
 			}
-
-			const validFiles: FileWithPreview[] = [];
-
-			for (const file of newFilesArray) {
-				// Only check for duplicates if multiple files are allowed
-				if (multiple) {
-					const isDuplicate = state.files.some(
-						(existingFile) =>
-							existingFile.file.name === file.name &&
-							existingFile.file.size === file.size
-					);
-
-					// Skip duplicate files silently
-					if (isDuplicate) {
-						return;
-					}
-				}
-
-				// Check file size
-				if (file.size > maxSize) {
-					errors.push(
-						multiple
-							? `Some files exceed the maximum size of ${formatBytes(maxSize)}.`
-							: `File exceeds the maximum size of ${formatBytes(maxSize)}.`
-					);
-					continue;
-				}
-
-				const error = validateFile(file);
-				if (error) {
-					errors.push(error);
-				} else {
-					validFiles.push({
-						file,
-						id: generateUniqueId(file),
-						preview: createPreview(file),
-					});
-				}
+			if (partition.outcome === "maxFiles") {
+				onError?.(partition.errors);
+				setState((prev) => ({ ...prev, errors: partition.errors }));
+				return;
 			}
-
-			// Only update state if we have valid files to add
+			const { validFiles, errors } = partition;
 			if (validFiles.length > 0) {
-				// Call the onFilesAdded callback with the newly added valid files
 				onFilesAdded?.(validFiles);
-
 				setState((prev) => {
-					const newFiles = multiple
-						? [...prev.files, ...validFiles]
-						: validFiles;
-					onFilesChange?.(newFiles);
-					return {
-						...prev,
-						files: newFiles,
-						errors,
-					};
+					const merged = multiple ? [...prev.files, ...validFiles] : validFiles;
+					onFilesChange?.(merged);
+					return { ...prev, files: merged, errors };
 				});
 			} else if (errors.length > 0) {
 				onError?.(errors);
-				setState((prev) => ({
-					...prev,
-					errors,
-				}));
+				setState((prev) => ({ ...prev, errors }));
 			}
-
-			// Reset input value after handling files
 			if (inputRef.current) {
 				inputRef.current.value = "";
 			}
@@ -338,13 +372,11 @@ export const useFileUpload = (
 			e.stopPropagation();
 			setState((prev) => ({ ...prev, isDragging: false }));
 
-			// Don't process files if the input is disabled
 			if (inputRef.current?.disabled) {
 				return;
 			}
 
 			if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-				// In single file mode, only use the first file
 				if (multiple) {
 					addFiles(e.dataTransfer.files);
 				} else {
@@ -401,19 +433,4 @@ export const useFileUpload = (
 			getInputProps,
 		},
 	];
-};
-
-// Helper function to format bytes to human-readable format
-export const formatBytes = (bytes: number, decimals = 2): string => {
-	if (bytes === 0) {
-		return "0 Bytes";
-	}
-
-	const k = 1024;
-	const dm = decimals < 0 ? 0 : decimals;
-	const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-	return Number.parseFloat((bytes / k ** i).toFixed(dm)) + sizes[i];
 };

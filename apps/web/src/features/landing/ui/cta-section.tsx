@@ -26,7 +26,7 @@ export const CtaSection = () => (
 				structured learning and AI-powered feedback.
 			</p>
 			<div className="mt-8 flex flex-wrap justify-center gap-4">
-				<Link to="/login">
+				<Link to="/auth/sign-in">
 					<Button className="gap-2 px-8" size="lg">
 						Get started for free
 						<ArrowRight className="h-4 w-4" />

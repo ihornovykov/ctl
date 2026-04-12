@@ -51,6 +51,39 @@ type TreeProps = React.HTMLAttributes<HTMLDivElement> & {
 	renderItem?: (params: TreeRenderItemParams) => React.ReactNode;
 };
 
+const computeExpandedItemIds = (
+	data: TreeDataItem[] | TreeDataItem,
+	targetId: string,
+	expandAll: boolean | undefined
+): string[] => {
+	const ids: string[] = [];
+
+	const walkItems = (items: TreeDataItem[] | TreeDataItem): boolean => {
+		if (Array.isArray(items)) {
+			for (const child of items) {
+				ids.push(child.id);
+				if (walkItems(child) && !expandAll) {
+					return true;
+				}
+				if (!expandAll) {
+					ids.pop();
+				}
+			}
+			return false;
+		}
+		if (!expandAll && items.id === targetId) {
+			return true;
+		}
+		if (items.children) {
+			return walkItems(items.children);
+		}
+		return false;
+	};
+
+	walkItems(data);
+	return ids;
+};
+
 const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
 	(
 		{
@@ -103,32 +136,7 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
 			if (!initialSelectedItemId) {
 				return [] as string[];
 			}
-
-			const ids: string[] = [];
-
-			function walkTreeItems(
-				items: TreeDataItem[] | TreeDataItem,
-				targetId: string
-			) {
-				if (Array.isArray(items)) {
-					for (let i = 0; i < items.length; i++) {
-						ids.push(items[i].id);
-						if (walkTreeItems(items[i], targetId) && !expandAll) {
-							return true;
-						}
-						if (!expandAll) {
-							ids.pop();
-						}
-					}
-				} else if (!expandAll && items.id === targetId) {
-					return true;
-				} else if (items.children) {
-					return walkTreeItems(items.children, targetId);
-				}
-			}
-
-			walkTreeItems(data, initialSelectedItemId);
-			return ids;
+			return computeExpandedItemIds(data, initialSelectedItemId, expandAll);
 		}, [data, expandAll, initialSelectedItemId]);
 
 		return (
@@ -148,11 +156,15 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
 					selectedItemId={selectedItemId}
 					{...props}
 				/>
-				<div
-					className="h-[48px] w-full"
-					onDrop={() => {
+				<button
+					aria-label="Drop onto tree background"
+					className="h-[48px] w-full border-0 bg-transparent p-0"
+					onDragOver={(e) => e.preventDefault()}
+					onDrop={(e) => {
+						e.preventDefault();
 						handleDrop({ id: "", name: "parent_div" });
 					}}
+					type="button"
 				/>
 			</div>
 		);
@@ -365,8 +377,8 @@ const TreeNode = ({
 };
 
 const TreeLeaf = React.forwardRef<
-	HTMLDivElement,
-	React.HTMLAttributes<HTMLDivElement> & {
+	HTMLButtonElement,
+	React.ComponentProps<"button"> & {
 		item: TreeDataItem;
 		level: number;
 		selectedItemId?: string;
@@ -431,31 +443,35 @@ const TreeLeaf = React.forwardRef<
 			handleDrop?.(item);
 		};
 
+		const onRowActivate = () => {
+			if (item.disabled) {
+				return;
+			}
+			handleSelectChange(item);
+			item.onClick?.();
+		};
+
 		return (
-			<div
+			<button
 				className={cn(
-					"ml-5 flex cursor-pointer items-center py-2 text-left before:right-1",
+					"ml-5 inline-flex w-full cursor-pointer items-center border-0 bg-transparent py-2 text-left shadow-none before:right-1",
 					treeVariants(),
 					className,
 					isSelected && selectedTreeVariants(),
 					isDragOver && dragOverVariants(),
-					item.disabled && "pointer-events-none cursor-not-allowed opacity-50",
+					item.disabled && "cursor-not-allowed opacity-50",
 					item.className
 				)}
+				disabled={!!item.disabled}
 				draggable={!!item.draggable && !item.disabled}
-				onClick={() => {
-					if (item.disabled) {
-						return;
-					}
-					handleSelectChange(item);
-					item.onClick?.();
-				}}
+				onClick={onRowActivate}
 				onDragLeave={onDragLeave}
 				onDragOver={onDragOver}
 				onDragStart={onDragStart}
 				onDrop={onDrop}
-				ref={ref}
 				{...props}
+				ref={ref}
+				type="button"
 			>
 				{renderItem ? (
 					<>
@@ -481,7 +497,7 @@ const TreeLeaf = React.forwardRef<
 						</TreeActions>
 					</>
 				)}
-			</div>
+			</button>
 		);
 	}
 );
@@ -544,7 +560,7 @@ const TreeIcon = ({
 	} else if (item.icon) {
 		Icon = item.icon;
 	}
-	return Icon ? <Icon className="mr-2 h-4 w-4 shrink-0" /> : <></>;
+	return Icon ? <Icon className="mr-2 h-4 w-4 shrink-0" /> : null;
 };
 
 const TreeActions = ({

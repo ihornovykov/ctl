@@ -16,7 +16,6 @@ import { ThemeProvider } from "@/shared/providers";
 import { DialogRenderer, Header } from "@/shared/ui";
 import appCss from "../index.css?url";
 
-// Runs before React hydrates to prevent flash of wrong theme.
 const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem('codelearn-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`;
 
 export interface RouterAppContext {
@@ -53,7 +52,6 @@ function RootDocument() {
 		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: theme script must run before paint */}
 				<script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
 			</head>
 			<body>

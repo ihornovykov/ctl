@@ -69,6 +69,8 @@ const TaskMonacoPane = ({
 	onChangeRef.current = onChange;
 	const readOnlyRef = useRef(readOnly);
 	readOnlyRef.current = readOnly;
+	const isDarkRef = useRef(isDark);
+	isDarkRef.current = isDark;
 
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -129,7 +131,7 @@ const TaskMonacoPane = ({
 				return;
 			}
 
-			applySandboxEditorTheme(monaco, isDark);
+			applySandboxEditorTheme(monaco, isDarkRef.current);
 
 			const uri = monaco.Uri.parse(`file://${filePath}`);
 
@@ -137,7 +139,7 @@ const TaskMonacoPane = ({
 			model = monaco.editor.createModel(initialCode, languageId, uri);
 			editor = monaco.editor.create(containerRef.current, {
 				model,
-				readOnly: !!readOnly,
+				readOnly: !!readOnlyRef.current,
 				fontSize: 13.5,
 				fontWeight: SANDBOX_EDITOR_FONT_WEIGHT,
 				fontFamily:
@@ -148,8 +150,8 @@ const TaskMonacoPane = ({
 				scrollBeyondLastLine: false,
 				wordWrap: "on",
 				tabSize: 2,
-				renderLineHighlight: readOnly ? "none" : "line",
-				cursorBlinking: readOnly ? "solid" : "blink",
+				renderLineHighlight: readOnlyRef.current ? "none" : "line",
+				cursorBlinking: readOnlyRef.current ? "solid" : "blink",
 				smoothScrolling: true,
 				padding: { top: 16, bottom: 16 },
 				scrollbar: {
@@ -188,8 +190,7 @@ const TaskMonacoPane = ({
 			editor?.dispose();
 			editorRef.current = null;
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [filePath, languageId]);
 
 	return (
 		<div

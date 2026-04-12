@@ -17,7 +17,8 @@
     "db:generate": "turbo -F @ctl/db db:generate",
     "db:migrate": "turbo -F @ctl/db db:migrate",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "docker:playground": "docker build -t ctl-playground:latest -f infra/playground/Dockerfile infra/playground"
   },
   "dependencies": {
     "@ctl/env": "workspace:*",

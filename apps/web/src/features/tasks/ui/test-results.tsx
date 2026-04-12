@@ -50,7 +50,7 @@ export const TestResults = ({
 			</div>
 
 			<div className="flex-1 divide-y divide-border/30 overflow-y-auto">
-				{results.map((result, i) => (
+				{results.map((result) => (
 					<div
 						className={cn(
 							"px-5 py-4 transition-colors",
@@ -58,8 +58,7 @@ export const TestResults = ({
 								? "hover:bg-emerald-500/5"
 								: "hover:bg-destructive/5"
 						)}
-						// biome-ignore lint/suspicious/noArrayIndexKey: stable list
-						key={i}
+						key={`${result.title}:${result.passed}:${result.error ?? ""}`}
 					>
 						<div className="flex items-start gap-3">
 							<div className="mt-0.5 shrink-0">

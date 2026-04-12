@@ -2,9 +2,7 @@ import { CourseList } from "@/features/courses";
 
 export const CoursesView = () => (
 	<div className="min-h-svh">
-		{/* Hero */}
 		<div className="relative overflow-hidden border-border/50 border-b py-16 md:py-20">
-			{/* Atmospheric background */}
 			<div className="pointer-events-none absolute inset-0">
 				<div className="absolute top-0 left-1/4 size-96 -translate-x-1/2 rounded-full bg-primary/8 blur-3xl" />
 				<div className="absolute top-0 right-1/4 size-80 translate-x-1/2 rounded-full bg-violet-500/6 blur-3xl" />
@@ -27,7 +25,6 @@ export const CoursesView = () => (
 			</div>
 		</div>
 
-		{/* Course grid */}
 		<div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
 			<CourseList />
 		</div>

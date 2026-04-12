@@ -199,7 +199,6 @@ const WorkspaceInner = ({
 			/>
 
 			<div className="flex flex-1 gap-3 overflow-hidden p-3 pt-2 pl-1">
-				{/* Editor card */}
 				<div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/40 bg-background shadow-sm">
 					<CodeEditor
 						code={code}
@@ -209,9 +208,7 @@ const WorkspaceInner = ({
 					/>
 				</div>
 
-				{/* Right panel card */}
 				<div className="flex w-[42%] min-w-0 flex-col overflow-hidden rounded-xl border border-border/40 bg-background shadow-sm">
-					{/* Tab bar */}
 					<div className="flex h-11 shrink-0 items-center border-border/40 border-b px-2">
 						{TABS.map(({ id, label, icon: Icon }) => {
 							const isActive = activeTab === id;
@@ -255,7 +252,6 @@ const WorkspaceInner = ({
 						)}
 					</div>
 
-					{/* Panel content */}
 					<div className="flex flex-1 flex-col overflow-hidden">
 						{activeTab === "overview" && (
 							<TaskDescription description={task.description} />
@@ -277,7 +273,6 @@ const WorkspaceInner = ({
 										(s) => (
 											<AiFeedbackPanel
 												criteria={task.criteria}
-												// biome-ignore lint/style/noNonNullAssertion: guarded by .when()
 												feedback={s.feedback!}
 											/>
 										)

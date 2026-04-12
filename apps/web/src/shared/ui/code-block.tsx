@@ -143,13 +143,11 @@ export const CodeBlock = ({ code, lang = "text", className }: Props) => {
 					"overflow-x-auto bg-[#f6f8fa] text-sm dark:bg-[#0d1117]",
 					"[&_pre]:m-0 [&_pre]:rounded-none [&_pre]:border-0 [&_pre]:p-5 [&_pre]:leading-6",
 					"[&_.shiki]:bg-transparent!",
-					// Shiki dual-theme: light by default, dark overrides
 					"dark:[&_.shiki]:text-(--shiki-dark)!",
 					"dark:[&_.shiki_span]:text-(--shiki-dark)!"
 				)}
 			>
 				{html ? (
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized by shiki
 					<div dangerouslySetInnerHTML={{ __html: html }} />
 				) : (
 					<pre className="m-0 overflow-x-auto p-5">

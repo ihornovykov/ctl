@@ -1,8 +1,11 @@
 import { Skeleton } from "@ctl/ui/components/skeleton";
+import { range } from "@/shared/lib";
 import { useCourses } from "../hooks/use-courses";
 import { COURSE_LIST_SECTION_HEADING_CLASS } from "../lib/constants";
 import { partitionCoursesByStack } from "../lib/utils";
 import { CourseCard } from "./course-card";
+
+const COURSE_LIST_SKELETON_COUNT = 6;
 
 const CourseCardSkeleton = () => (
 	<div className="flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card">
@@ -25,9 +28,8 @@ export const CourseList = () => {
 	if (isPending) {
 		return (
 			<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-				{Array.from({ length: 6 }).map((_, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
-					<CourseCardSkeleton key={index} />
+				{range(COURSE_LIST_SKELETON_COUNT).map((i) => (
+					<CourseCardSkeleton key={i} />
 				))}
 			</div>
 		);

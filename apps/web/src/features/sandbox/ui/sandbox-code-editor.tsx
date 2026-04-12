@@ -64,6 +64,10 @@ const SandboxMonacoPane = ({
 	onSaveRef.current = onSave;
 	const readOnlyRef = useRef(readOnly);
 	readOnlyRef.current = readOnly;
+	const codeRef = useRef(code);
+	codeRef.current = code;
+	const isDarkRef = useRef(isDark);
+	isDarkRef.current = isDark;
 
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -119,7 +123,7 @@ const SandboxMonacoPane = ({
 				return;
 			}
 
-			applySandboxEditorTheme(monaco, isDark);
+			applySandboxEditorTheme(monaco, isDarkRef.current);
 
 			const pathPart = modelPath
 				.replace(SANDBOX_EDITOR_LEADING_SLASHES, "")
@@ -127,10 +131,10 @@ const SandboxMonacoPane = ({
 			const filePath = pathPart.startsWith("/") ? pathPart : `/${pathPart}`;
 			const uri = monaco.Uri.parse(`file://${filePath}`);
 
-			model = monaco.editor.createModel(code, undefined, uri);
+			model = monaco.editor.createModel(codeRef.current, undefined, uri);
 			editor = monaco.editor.create(containerRef.current, {
 				model,
-				readOnly: !!readOnly,
+				readOnly: !!readOnlyRef.current,
 				fontSize: 14,
 				fontWeight: SANDBOX_EDITOR_FONT_WEIGHT,
 				fontFamily:
@@ -141,8 +145,8 @@ const SandboxMonacoPane = ({
 				scrollBeyondLastLine: false,
 				wordWrap: "on",
 				tabSize: 2,
-				renderLineHighlight: readOnly ? "none" : "line",
-				cursorBlinking: readOnly ? "solid" : "blink",
+				renderLineHighlight: readOnlyRef.current ? "none" : "line",
+				cursorBlinking: readOnlyRef.current ? "solid" : "blink",
 				smoothScrolling: true,
 				padding: { top: 16, bottom: 16 },
 				scrollbar: {
@@ -193,8 +197,7 @@ const SandboxMonacoPane = ({
 			editor?.dispose();
 			editorRef.current = null;
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [modelPath]);
 
 	return (
 		<div

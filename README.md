@@ -1,105 +1,134 @@
-# ctl
+# CodeToLearn
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Fastify, ORPC, and more.
+Monorepo for an interactive programming learning platform: courses, lessons, tasks, and live **React / Vue sandboxes** backed by Docker. Built on [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack) (TanStack Start, Fastify, oRPC, Drizzle, Better Auth).
 
-## Features
+---
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **Fastify** - Fast, low-overhead web framework
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
-- **Node.js** - Runtime environment
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Biome** - Linting and formatting
-- **Turborepo** - Optimized monorepo build system
+## Prerequisites
 
-## Getting Started
+| Requirement | Notes |
+|-------------|--------|
+| **Node.js** | 20+ recommended |
+| **pnpm** | `corepack enable` then use the version from `packageManager` in root `package.json` |
+| **PostgreSQL** | Required for Drizzle / auth / app data |
+| **Docker** | Required to build and run **playground** preview containers (see below) |
 
-First, install the dependencies:
+---
 
-```bash
-pnpm install
+## Quick start
+
+1. **Install dependencies**
+
+   ```bash
+   pnpm install
+   ```
+
+2. **Configure the server** — copy or edit `apps/server/.env` with at least:
+
+   - `DATABASE_URL` — PostgreSQL connection string  
+   - Values required by `@ctl/env/server` (Better Auth, OAuth, CORS, UploadThing, Google AI, etc. — see that package for the full schema)
+
+   Playground sandboxes use **`PLAYGROUND_DOCKER_IMAGE`**, which defaults to **`ctl-playground:latest`**. Override only if you tag the image differently.
+
+3. **Apply the database schema**
+
+   ```bash
+   pnpm db:push
+   ```
+
+   For versioned migrations in other environments, use `pnpm db:migrate` after `pnpm db:generate` when you change schema.
+
+4. **Build the playground image** (once, or after template changes)
+
+   ```bash
+   pnpm docker:playground
+   ```
+
+   Equivalent to:
+
+   ```bash
+   docker build -t ctl-playground:latest -f infra/playground/Dockerfile infra/playground
+   ```
+
+   The first build can take several minutes (`npm install` runs for both React and Vue templates inside the image).
+
+5. **Start development**
+
+   ```bash
+   pnpm dev
+   ```
+
+| Service | URL |
+|---------|-----|
+| Web app | [http://localhost:3001](http://localhost:3001) |
+| API | [http://localhost:3000](http://localhost:3000) |
+
+---
+
+## Playground Docker image
+
+The API spawns per-session containers (see `packages/api` playground session logic) using the image built from [`infra/playground/Dockerfile`](infra/playground/Dockerfile). It bundles **React** and **Vue** Vite templates under `infra/playground/templates/`.
+
+- Ensure **Docker Desktop** (or compatible daemon) is running before using sandbox / preview features.
+- Re-run **`pnpm docker:playground`** after changing templates or the Dockerfile.
+
+---
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start web + server (and other `dev` tasks via Turborepo) |
+| `pnpm dev:web` | Web app only |
+| `pnpm dev:server` | API server only |
+| `pnpm build` | Production build for apps/packages in the pipeline |
+| `pnpm check` | Lint and format check (Ultracite / Biome) |
+| `pnpm fix` | Apply safe lint/format fixes |
+| `pnpm check-types` | TypeScript project references across the monorepo |
+| `pnpm db:push` | Push Drizzle schema to the database (dev-friendly) |
+| `pnpm db:generate` | Generate migrations from schema changes |
+| `pnpm db:migrate` | Run migrations |
+| `pnpm db:studio` | Open Drizzle Studio |
+| `pnpm docker:playground` | Build `ctl-playground:latest` for sandboxes |
+
+---
+
+## Repository layout
+
+```
+ctl/
+├── apps/
+│   ├── web/                 # TanStack Start + Vite frontend
+│   └── server/              # Fastify: oRPC, auth proxy, playground preview
+├── packages/
+│   ├── api/                 # oRPC routers, playground session, AI runner
+│   ├── auth/                # Better Auth
+│   ├── db/                  # Drizzle schema & migrations
+│   ├── env/                 # Typed env (web + server)
+│   ├── ui/                  # Shared shadcn/Radix components & styles
+│   └── config/              # Shared TS config
+└── infra/
+    └── playground/          # Dockerfile + React/Vue sandbox templates
 ```
 
-## Database Setup
+---
 
-This project uses PostgreSQL with Drizzle ORM.
+## UI (shadcn)
 
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
+Shared primitives live in **`packages/ui`**.
 
-3. Apply the schema to your database:
+- Tokens and globals: `packages/ui/src/styles/globals.css`
+- Components: `packages/ui/src/components/*`
+- Config: `packages/ui/components.json`, `apps/web/components.json`
 
-```bash
-pnpm run db:push
-```
-
-Then, run the development server:
-
-```bash
-pnpm run dev
-```
-
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
-
-## UI Customization
-
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
-
-- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
-- Update shared primitives in `packages/ui/src/components/*`
-- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
-
-### Add more shared components
-
-Run this from the project root to add more primitives to the shared UI package:
+Add components to the shared package from the repo root:
 
 ```bash
 npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
 ```
 
-Import shared components like this:
-
 ```tsx
 import { Button } from "@ctl/ui/components/button";
 ```
 
-### Add app-specific blocks
-
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
-
-## Git Hooks and Formatting
-
-- Format and lint fix: `pnpm run check`
-
-## Project Structure
-
-```
-ctl/
-├── apps/
-│   ├── web/         # Frontend application (React + TanStack Start)
-│   └── server/      # Backend API (Fastify, ORPC)
-├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
-```
-
-## Available Scripts
-
-- `pnpm run dev`: Start all applications in development mode
-- `pnpm run build`: Build all applications
-- `pnpm run dev:web`: Start only the web application
-- `pnpm run dev:server`: Start only the server
-- `pnpm run check-types`: Check TypeScript types across all apps
-- `pnpm run db:push`: Push schema changes to database
-- `pnpm run db:generate`: Generate database client/types
-- `pnpm run db:migrate`: Run database migrations
-- `pnpm run db:studio`: Open database studio UI
-- `pnpm run check`: Run Biome formatting and linting
+For app-only blocks, run the shadcn CLI from **`apps/web`**.

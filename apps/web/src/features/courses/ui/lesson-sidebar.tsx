@@ -7,11 +7,14 @@ import { Skeleton } from "@ctl/ui/components/skeleton";
 import { cn } from "@ctl/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, CheckCircle2, Lock, Play } from "lucide-react";
+import { range } from "@/shared/lib";
 
 type Props = {
 	course: CourseDetail | null;
 	lessonSlug: string;
 };
+
+const SIDEBAR_SKELETON_ROW_COUNT = 8;
 
 const LessonNavItem = ({
 	item,
@@ -100,8 +103,7 @@ const SidebarSkeleton = () => (
 			<Skeleton className="h-2 w-full rounded-full" />
 		</div>
 		<div className="flex flex-col gap-1 p-3">
-			{Array.from({ length: 8 }).map((_, i) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+			{range(SIDEBAR_SKELETON_ROW_COUNT).map((i) => (
 				<Skeleton className="h-12 w-full rounded-xl" key={i} />
 			))}
 		</div>

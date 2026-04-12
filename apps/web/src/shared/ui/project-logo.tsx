@@ -11,7 +11,6 @@ import {
 type Props = {
 	className?: string;
 	iconClassName?: string;
-	/** Use `text-*` (and optional `opacity-*`) on the icon to tint the mark via mask + currentColor. */
 	iconTone?: "original" | "currentColor";
 	textClassName?: string;
 	variant?: "default" | "onDark";
