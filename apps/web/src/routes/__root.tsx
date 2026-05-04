@@ -58,7 +58,9 @@ function RootDocument() {
 				<ThemeProvider>
 					<div className="flex min-h-svh flex-col">
 						{!isAuthRoute && <Header />}
-						<Outlet />
+						<main className="flex min-h-0 flex-1 flex-col">
+							<Outlet />
+						</main>
 					</div>
 					<DialogRenderer />
 					<Toaster richColors />

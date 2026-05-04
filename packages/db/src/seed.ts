@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import {
 	course,
 	gradingCriteria,
+	journeyPreset,
 	language,
 	lesson,
 	task,
@@ -84,6 +85,14 @@ const languages = [
 		fileExtension: ".vue",
 		monacoLanguage: "vue",
 	},
+	{
+		id: "foundations",
+		name: "Foundations",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg",
+		dockerImage: "node:20-alpine",
+		fileExtension: ".md",
+		monacoLanguage: "markdown",
+	},
 ] as const;
 
 const courses = [
@@ -108,6 +117,8 @@ const courses = [
 		estimatedHours: 24,
 		sortOrder: 1,
 		isPublished: true,
+		category: "languages",
+		icon: null,
 	},
 	{
 		id: "course-typescript-essentials",
@@ -130,6 +141,8 @@ const courses = [
 		estimatedHours: 18,
 		sortOrder: 2,
 		isPublished: true,
+		category: "languages",
+		icon: null,
 	},
 	{
 		id: "course-go-fundamentals",
@@ -152,6 +165,8 @@ const courses = [
 		estimatedHours: 20,
 		sortOrder: 3,
 		isPublished: true,
+		category: "languages",
+		icon: null,
 	},
 	{
 		id: "course-python-fundamentals",
@@ -174,6 +189,8 @@ const courses = [
 		estimatedHours: 20,
 		sortOrder: 4,
 		isPublished: true,
+		category: "languages",
+		icon: null,
 	},
 	{
 		id: "course-c-fundamentals",
@@ -196,6 +213,8 @@ const courses = [
 		estimatedHours: 22,
 		sortOrder: 5,
 		isPublished: true,
+		category: "languages",
+		icon: null,
 	},
 	{
 		id: "course-cpp-fundamentals",
@@ -218,6 +237,8 @@ const courses = [
 		estimatedHours: 28,
 		sortOrder: 6,
 		isPublished: true,
+		category: "languages",
+		icon: null,
 	},
 	{
 		id: "course-react-fundamentals",
@@ -239,6 +260,8 @@ const courses = [
 		estimatedHours: 12,
 		sortOrder: 7,
 		isPublished: true,
+		category: "frameworks",
+		icon: null,
 	},
 	{
 		id: "course-vue-fundamentals",
@@ -260,6 +283,77 @@ const courses = [
 		estimatedHours: 12,
 		sortOrder: 8,
 		isPublished: true,
+		category: "frameworks",
+		icon: null,
+	},
+	{
+		id: "course-internet-how-it-works",
+		languageId: "foundations",
+		title: "How the Internet Works",
+		slug: "internet-how-it-works",
+		shortDescription:
+			"HTTP, DNS, browsers, and hosting — the concepts every web developer should know before writing code.",
+		description: `Understand what happens when you type a URL: DNS resolution, TCP, HTTP requests and responses, TLS, CDNs, and how browsers render pages. No coding sandbox required — conceptual lessons only.
+
+**Prerequisites:** None.
+
+**What you'll learn:**
+- Clients, servers, and the request–response cycle
+- DNS, URLs, and IP addresses
+- HTTP methods, status codes, and headers
+- How browsers fetch and render resources`,
+		difficulty: "beginner",
+		estimatedHours: 4,
+		sortOrder: 9,
+		isPublished: true,
+		category: "foundations",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/chrome/chrome-original.svg",
+	},
+	{
+		id: "course-git-github-foundations",
+		languageId: "foundations",
+		title: "Git and GitHub",
+		slug: "git-github-foundations",
+		shortDescription:
+			"Version control with Git, branches, commits, and collaborating on GitHub.",
+		description: `Learn the workflow every team uses: repositories, staging, commits, branches, merges, remotes, pull requests, and resolving conflicts. Focus on concepts and CLI patterns you will use daily.
+
+**Prerequisites:** None.
+
+**What you'll learn:**
+- What Git tracks and the three-tree model
+- Branching and merging strategies
+- Working with remotes and GitHub flow
+- Pull requests and code review basics`,
+		difficulty: "beginner",
+		estimatedHours: 5,
+		sortOrder: 10,
+		isPublished: true,
+		category: "foundations",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg",
+	},
+	{
+		id: "course-html-css-foundations",
+		languageId: "foundations",
+		title: "HTML and CSS",
+		slug: "html-css-foundations",
+		shortDescription:
+			"Structure pages with semantic HTML and style them with modern CSS.",
+		description: `Build the presentation layer of the web: semantic elements, forms, accessibility basics, the box model, flexbox, and responsive layout fundamentals.
+
+**Prerequisites:** None — pairs well with the Internet course.
+
+**What you'll learn:**
+- Semantic HTML5 and document structure
+- CSS selectors, cascade, and specificity
+- Flexbox and common layout patterns
+- Responsive design and media queries`,
+		difficulty: "beginner",
+		estimatedHours: 8,
+		sortOrder: 11,
+		isPublished: true,
+		category: "foundations",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg",
 	},
 ];
 
@@ -1702,6 +1796,128 @@ Use \`ref(0)\` for the count. Each button click increments it. Label the button 
 Use \`computed\` to derive \`greeting\` from a \`ref\` \`name\` (starter uses \`"Ada"\`) so the page shows **Hello, Ada**.${FRAMEWORK_EXAMPLE_VUE_GREETING}${FRAMEWORK_TASK_TESTING_HINT}`,
 		hasTask: true,
 		sortOrder: 3,
+	},
+	{
+		id: "lesson-foundation-internet-01",
+		courseId: "course-internet-how-it-works",
+		title: "Clients, servers, and HTTP",
+		slug: "clients-servers-http",
+		description:
+			"What happens when you open a web page: browsers, servers, and the HTTP request–response cycle.",
+		content: `# Clients, servers, and HTTP
+
+A **client** (usually your browser) asks a **server** for resources. The conversation follows **HTTP** (Hypertext Transfer Protocol).
+
+## Request and response
+
+1. You enter a URL or click a link.
+2. The browser sends an **HTTP request** to a server.
+3. The server returns an **HTTP response** (status line, headers, body).
+
+Common **status codes**: \`200\` OK, \`404\` Not Found, \`301\` Moved Permanently, \`500\` Server Error.
+
+## Methods
+
+- **GET** — fetch a resource (pages, images, APIs).
+- **POST** — submit data (forms, creating records).
+
+TLS (\`https://\`) encrypts the connection so traffic cannot be read in transit.`,
+		hasTask: false,
+		sortOrder: 1,
+	},
+	{
+		id: "lesson-foundation-internet-02",
+		courseId: "course-internet-how-it-works",
+		title: "DNS and URLs",
+		slug: "dns-and-urls",
+		description:
+			"How human-readable hostnames map to IP addresses and how URLs are structured.",
+		content: `# DNS and URLs
+
+A **URL** has a scheme (\`https\`), host (\`example.com\`), path (\`/docs\`), and optional query string.
+
+**DNS** (Domain Name System) translates \`example.com\` into an **IP address** so your browser knows where to connect. Resolvers cache answers for speed.
+
+**CDN**s place copies of static assets closer to users so downloads are faster worldwide.`,
+		hasTask: false,
+		sortOrder: 2,
+	},
+	{
+		id: "lesson-foundation-git-01",
+		courseId: "course-git-github-foundations",
+		title: "Repositories and commits",
+		slug: "repositories-and-commits",
+		description:
+			"Initialize a repo, stage changes, and create commits with meaningful messages.",
+		content: `# Repositories and commits
+
+A **repository** is a folder Git tracks. The **working tree** holds your files; **staging** selects what goes into the next **commit** — a snapshot with a message.
+
+Typical flow:
+
+\`\`\`bash
+git init
+git add .
+git commit -m "Describe the change"
+\`\`\`
+
+Commits form a **history** you can compare, revert, and share.`,
+		hasTask: false,
+		sortOrder: 1,
+	},
+	{
+		id: "lesson-foundation-git-02",
+		courseId: "course-git-github-foundations",
+		title: "Branches and GitHub",
+		slug: "branches-and-github",
+		description:
+			"Branch for features, push to a remote, and open pull requests.",
+		content: `# Branches and GitHub
+
+**Branches** let you work in parallel without disturbing \`main\`. Merge when the work is reviewed.
+
+\`\`\`bash
+git checkout -b feature/login
+# ... commits ...
+git push -u origin feature/login
+\`\`\`
+
+On **GitHub**, a **pull request** proposes merging your branch: teammates review diffs, comment, and approve.`,
+		hasTask: false,
+		sortOrder: 2,
+	},
+	{
+		id: "lesson-foundation-html-01",
+		courseId: "course-html-css-foundations",
+		title: "Semantic HTML",
+		slug: "semantic-html",
+		description:
+			"Use meaningful elements for structure, accessibility, and SEO.",
+		content: `# Semantic HTML
+
+Prefer \`<main>\`, \`<nav>\`, \`<article>\`, \`<section>\`, \`<header>\`, \`<footer>\` over anonymous \`<div>\` soup.
+
+- **Headings** (\`<h1>\`–\`<h6>\`) outline the page.
+- **Landmarks** help screen readers skip to content.
+- **Forms** use \`<label>\` tied to inputs via \`for\` / \`id\`.`,
+		hasTask: false,
+		sortOrder: 1,
+	},
+	{
+		id: "lesson-foundation-html-02",
+		courseId: "course-html-css-foundations",
+		title: "CSS layout basics",
+		slug: "css-layout-basics",
+		description: "Box model, flexbox, and responsive thinking.",
+		content: `# CSS layout basics
+
+Every element is a **box**: content, padding, border, margin.
+
+**Flexbox** (\`display: flex\`) aligns children along one dimension — ideal for toolbars, cards, and centering.
+
+Use **relative units** (\`rem\`, \`%\`, \`vw\`) and **media queries** so layouts adapt to screen size.`,
+		hasTask: false,
+		sortOrder: 2,
 	},
 ] as const;
 
@@ -3333,6 +3549,144 @@ const gradingCriteriaData = [
 	},
 ];
 
+const frontendRoadmapPresetGraph = {
+	nodes: [
+		{
+			id: "n-start",
+			type: "journeyMilestone",
+			position: { x: 260, y: 0 },
+			data: { kind: "milestone", label: "Your learning path" },
+		},
+		{
+			id: "n-internet",
+			type: "journeyCourse",
+			position: { x: 260, y: 200 },
+			data: {
+				kind: "course",
+				label: "How the web works",
+				courseSlug: "internet-how-it-works",
+			},
+		},
+		{
+			id: "n-git",
+			type: "journeyCourse",
+			position: { x: 260, y: 400 },
+			data: {
+				kind: "course",
+				label: "Version control",
+				courseSlug: "git-github-foundations",
+			},
+		},
+		{
+			id: "n-html",
+			type: "journeyCourse",
+			position: { x: 260, y: 600 },
+			data: {
+				kind: "course",
+				label: "HTML & CSS",
+				courseSlug: "html-css-foundations",
+			},
+		},
+		{
+			id: "n-js",
+			type: "journeyCourse",
+			position: { x: 260, y: 800 },
+			data: {
+				kind: "course",
+				label: "JavaScript",
+				courseSlug: "javascript-fundamentals",
+			},
+		},
+		{
+			id: "n-choice-fw",
+			type: "journeyChoice",
+			position: { x: 260, y: 1000 },
+			data: {
+				kind: "choice",
+				label: "Choose a UI framework",
+				choiceGroupId: "frontend-framework",
+			},
+		},
+		{
+			id: "n-react",
+			type: "journeyCourse",
+			position: { x: 60, y: 1200 },
+			data: {
+				kind: "course",
+				label: "React",
+				courseSlug: "react-fundamentals",
+				choiceGroupId: "frontend-framework",
+			},
+		},
+		{
+			id: "n-vue",
+			type: "journeyCourse",
+			position: { x: 460, y: 1200 },
+			data: {
+				kind: "course",
+				label: "Vue",
+				courseSlug: "vue-fundamentals",
+				choiceGroupId: "frontend-framework",
+			},
+		},
+	],
+	edges: [
+		{
+			id: "e-start-internet",
+			source: "n-start",
+			target: "n-internet",
+			type: "journeySpine",
+		},
+		{
+			id: "e-internet-git",
+			source: "n-internet",
+			target: "n-git",
+			type: "journeySpine",
+		},
+		{
+			id: "e-git-html",
+			source: "n-git",
+			target: "n-html",
+			type: "journeySpine",
+		},
+		{
+			id: "e-html-js",
+			source: "n-html",
+			target: "n-js",
+			type: "journeySpine",
+		},
+		{
+			id: "e-js-choice",
+			source: "n-js",
+			target: "n-choice-fw",
+			type: "journeySpine",
+		},
+		{
+			id: "e-choice-react",
+			source: "n-choice-fw",
+			target: "n-react",
+			type: "journeyBranch",
+		},
+		{
+			id: "e-choice-vue",
+			source: "n-choice-fw",
+			target: "n-vue",
+			type: "journeyBranch",
+		},
+	],
+} as const;
+
+const journeyPresetsSeed = [
+	{
+		id: "preset-frontend-roadmap",
+		slug: "frontend",
+		title: "Frontend developer path",
+		description:
+			"A roadmap-style path from internet basics through JavaScript, then React or Vue.",
+		graphJson: frontendRoadmapPresetGraph as unknown as Record<string, unknown>,
+	},
+];
+
 const cleanupSeedTables = async () => {
 	const languageIds = languages.map((row) => row.id);
 	const courseIds = courses.map((row) => row.id);
@@ -3389,6 +3743,8 @@ async function seed() {
 				estimatedHours: course.estimatedHours,
 				sortOrder: course.sortOrder,
 				isPublished: course.isPublished,
+				category: course.category,
+				icon: course.icon,
 			},
 		});
 	console.log(`  Inserted/updated ${courses.length} courses`);
@@ -3456,6 +3812,23 @@ async function seed() {
 		});
 	console.log(
 		`  Inserted/updated ${gradingCriteriaData.length} grading criteria`
+	);
+
+	console.log("Seeding journey presets...");
+	await db
+		.insert(journeyPreset)
+		.values(journeyPresetsSeed)
+		.onConflictDoUpdate({
+			target: journeyPreset.id,
+			set: {
+				slug: journeyPreset.slug,
+				title: journeyPreset.title,
+				description: journeyPreset.description,
+				graphJson: journeyPreset.graphJson,
+			},
+		});
+	console.log(
+		`  Inserted/updated ${journeyPresetsSeed.length} journey presets`
 	);
 
 	console.log("Done.");

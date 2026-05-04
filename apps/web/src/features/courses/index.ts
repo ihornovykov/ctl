@@ -3,6 +3,7 @@ export * from "./hooks/use-course";
 export * from "./hooks/use-courses";
 export * from "./hooks/use-enroll";
 export * from "./hooks/use-lesson";
+export * from "./lib/course-categories";
 export * from "./ui/course-card";
 export * from "./ui/course-detail-header";
 export * from "./ui/course-list";

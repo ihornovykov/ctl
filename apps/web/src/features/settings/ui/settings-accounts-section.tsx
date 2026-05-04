@@ -6,7 +6,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@ctl/ui/components/card";
-import { IconBrandGithub } from "@tabler/icons-react";
+import { IconBrandGithub, IconMail } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -23,6 +23,11 @@ const GoogleProviderMark = () => (
 );
 
 const linkableOauthProviders = [
+	{
+		label: "Email and password",
+		provider: "credential" as const,
+		renderIcon: () => <IconMail className="size-5 shrink-0" />,
+	},
 	{
 		label: "Google",
 		provider: "google" as const,
@@ -44,7 +49,10 @@ export const SettingsAccountsSection = () => {
 		await refetch();
 	};
 
-	const onLinkSocial = async (provider: "google" | "github") => {
+	const onLinkSocial = async (provider: "google" | "github" | "credential") => {
+		if (provider === "credential") {
+			return;
+		}
 		await authClient.linkSocial({
 			callbackURL: oauthCallbackUrl("/settings"),
 			provider,
@@ -52,6 +60,9 @@ export const SettingsAccountsSection = () => {
 	};
 
 	const onUnlink = async (providerId: string, accountId: string) => {
+		if (providerId === "credential") {
+			return;
+		}
 		await authClient.unlinkAccount(
 			{ providerId, accountId },
 			{

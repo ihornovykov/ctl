@@ -2,14 +2,17 @@ import { Skeleton } from "@ctl/ui/components/skeleton";
 import { range } from "@/shared/lib";
 import { useCourses } from "../hooks/use-courses";
 import { COURSE_LIST_SECTION_HEADING_CLASS } from "../lib/constants";
-import { partitionCoursesByStack } from "../lib/utils";
+import {
+	COURSE_CATEGORY_TITLES,
+	groupCoursesByCategory,
+} from "../lib/course-categories";
 import { CourseCard } from "./course-card";
 
 const COURSE_LIST_SKELETON_COUNT = 6;
 
 const CourseCardSkeleton = () => (
-	<div className="flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card">
-		<Skeleton className="h-36 w-full rounded-none" />
+	<div className="flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card">
+		<Skeleton className="h-40 w-full rounded-none" />
 		<div className="flex flex-col gap-3 p-5">
 			<Skeleton className="h-4 w-3/4" />
 			<Skeleton className="h-3 w-full" />
@@ -46,41 +49,35 @@ export const CourseList = () => {
 		);
 	}
 
-	const { languageCourses, frameworkCourses } =
-		partitionCoursesByStack(courses);
+	const sections = groupCoursesByCategory(courses);
 
 	return (
 		<div className="space-y-16">
-			{languageCourses.length > 0 ? (
-				<section>
-					<h2 className={COURSE_LIST_SECTION_HEADING_CLASS}>Languages</h2>
-					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-						{languageCourses.map((course, i) => (
-							<CourseCard course={course} index={i} key={course.id} />
-						))}
-					</div>
-				</section>
-			) : null}
-			{frameworkCourses.length > 0 ? (
+			{sections.map((section, sectionIndex) => (
 				<section
 					className={
-						languageCourses.length > 0
-							? "border-border/40 border-t pt-16"
-							: undefined
+						sectionIndex > 0 ? "border-border/30 border-t pt-16" : undefined
 					}
+					key={section.id}
 				>
-					<h2 className={COURSE_LIST_SECTION_HEADING_CLASS}>Frameworks</h2>
+					<h2 className={COURSE_LIST_SECTION_HEADING_CLASS}>
+						{
+							COURSE_CATEGORY_TITLES[
+								section.id as keyof typeof COURSE_CATEGORY_TITLES
+							]
+						}
+					</h2>
 					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-						{frameworkCourses.map((course, i) => (
+						{section.courses.map((course, i) => (
 							<CourseCard
 								course={course}
-								index={languageCourses.length + i}
+								index={sectionIndex * 100 + i}
 								key={course.id}
 							/>
 						))}
 					</div>
 				</section>
-			) : null}
+			))}
 		</div>
 	);
 };

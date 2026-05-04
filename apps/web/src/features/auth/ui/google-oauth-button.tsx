@@ -9,7 +9,6 @@ type Props = {
 
 export const GoogleOauthButton = ({ loading, onGoogleSignIn }: Props) => (
 	<Button
-		className="h-11 w-full"
 		icon={<GoogleIcon />}
 		loading={loading}
 		onClick={onGoogleSignIn}

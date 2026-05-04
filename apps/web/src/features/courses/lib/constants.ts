@@ -1,8 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { BookOpen, GraduationCap, Zap } from "lucide-react";
 
-export const FRAMEWORK_LANGUAGE_IDS = new Set(["react", "vue"]);
-
 export const COURSE_LIST_SECTION_HEADING_CLASS =
 	"mb-6 font-semibold text-muted-foreground text-md uppercase tracking-widest";
 
@@ -77,6 +75,12 @@ export const COURSE_CARD_LANG_ACCENT: Record<string, CourseCardLanguageAccent> =
 			via: "via-green-400/10",
 			ring: "group-hover:ring-emerald-500/40",
 			glow: "bg-emerald-500/20",
+		},
+		foundations: {
+			from: "from-slate-500/20",
+			via: "via-slate-400/10",
+			ring: "group-hover:ring-slate-400/40",
+			glow: "bg-slate-400/20",
 		},
 	};
 
@@ -178,6 +182,13 @@ export const COURSE_DETAIL_LANG_ACCENT: Record<
 		glow: "bg-emerald-500/30",
 		progressColor: "bg-emerald-500",
 		ring: "ring-emerald-500/20",
+	},
+	foundations: {
+		from: "from-slate-500/25",
+		via: "via-slate-400/15",
+		glow: "bg-slate-500/30",
+		progressColor: "bg-slate-500",
+		ring: "ring-slate-400/20",
 	},
 };
 
