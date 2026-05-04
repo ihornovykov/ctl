@@ -13,7 +13,10 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as JourneysIndexRouteImport } from './routes/journeys/index'
 import { Route as CoursesIndexRouteImport } from './routes/courses/index'
+import { Route as JourneysDraftRouteImport } from './routes/journeys/draft'
+import { Route as JourneysJourneyIdRouteImport } from './routes/journeys/$journeyId'
 import { Route as CoursesSlugRouteImport } from './routes/courses/$slug'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
@@ -42,9 +45,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JourneysIndexRoute = JourneysIndexRouteImport.update({
+  id: '/journeys/',
+  path: '/journeys/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CoursesIndexRoute = CoursesIndexRouteImport.update({
   id: '/courses/',
   path: '/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JourneysDraftRoute = JourneysDraftRouteImport.update({
+  id: '/journeys/draft',
+  path: '/journeys/draft',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JourneysJourneyIdRoute = JourneysJourneyIdRouteImport.update({
+  id: '/journeys/$journeyId',
+  path: '/journeys/$journeyId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoursesSlugRoute = CoursesSlugRouteImport.update({
@@ -94,7 +112,10 @@ export interface FileRoutesByFullPath {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/courses/$slug': typeof CoursesSlugRouteWithChildren
+  '/journeys/$journeyId': typeof JourneysJourneyIdRoute
+  '/journeys/draft': typeof JourneysDraftRoute
   '/courses/': typeof CoursesIndexRoute
+  '/journeys/': typeof JourneysIndexRoute
   '/courses/$slug/': typeof CoursesSlugIndexRoute
   '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugRouteWithChildren
   '/courses/$slug/lessons/$lessonSlug/task': typeof CoursesSlugLessonsLessonSlugTaskRoute
@@ -107,7 +128,10 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/journeys/$journeyId': typeof JourneysJourneyIdRoute
+  '/journeys/draft': typeof JourneysDraftRoute
   '/courses': typeof CoursesIndexRoute
+  '/journeys': typeof JourneysIndexRoute
   '/courses/$slug': typeof CoursesSlugIndexRoute
   '/courses/$slug/lessons/$lessonSlug/task': typeof CoursesSlugLessonsLessonSlugTaskRoute
   '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugIndexRoute
@@ -121,7 +145,10 @@ export interface FileRoutesById {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/courses/$slug': typeof CoursesSlugRouteWithChildren
+  '/journeys/$journeyId': typeof JourneysJourneyIdRoute
+  '/journeys/draft': typeof JourneysDraftRoute
   '/courses/': typeof CoursesIndexRoute
+  '/journeys/': typeof JourneysIndexRoute
   '/courses/$slug/': typeof CoursesSlugIndexRoute
   '/courses/$slug/lessons/$lessonSlug': typeof CoursesSlugLessonsLessonSlugRouteWithChildren
   '/courses/$slug/lessons/$lessonSlug/task': typeof CoursesSlugLessonsLessonSlugTaskRoute
@@ -137,7 +164,10 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/courses/$slug'
+    | '/journeys/$journeyId'
+    | '/journeys/draft'
     | '/courses/'
+    | '/journeys/'
     | '/courses/$slug/'
     | '/courses/$slug/lessons/$lessonSlug'
     | '/courses/$slug/lessons/$lessonSlug/task'
@@ -150,7 +180,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/journeys/$journeyId'
+    | '/journeys/draft'
     | '/courses'
+    | '/journeys'
     | '/courses/$slug'
     | '/courses/$slug/lessons/$lessonSlug/task'
     | '/courses/$slug/lessons/$lessonSlug'
@@ -163,7 +196,10 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/courses/$slug'
+    | '/journeys/$journeyId'
+    | '/journeys/draft'
     | '/courses/'
+    | '/journeys/'
     | '/courses/$slug/'
     | '/courses/$slug/lessons/$lessonSlug'
     | '/courses/$slug/lessons/$lessonSlug/task'
@@ -176,7 +212,10 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   SettingsRoute: typeof SettingsRoute
   CoursesSlugRoute: typeof CoursesSlugRouteWithChildren
+  JourneysJourneyIdRoute: typeof JourneysJourneyIdRoute
+  JourneysDraftRoute: typeof JourneysDraftRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
+  JourneysIndexRoute: typeof JourneysIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -209,11 +248,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/journeys/': {
+      id: '/journeys/'
+      path: '/journeys'
+      fullPath: '/journeys/'
+      preLoaderRoute: typeof JourneysIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/courses/': {
       id: '/courses/'
       path: '/courses'
       fullPath: '/courses/'
       preLoaderRoute: typeof CoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journeys/draft': {
+      id: '/journeys/draft'
+      path: '/journeys/draft'
+      fullPath: '/journeys/draft'
+      preLoaderRoute: typeof JourneysDraftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journeys/$journeyId': {
+      id: '/journeys/$journeyId'
+      path: '/journeys/$journeyId'
+      fullPath: '/journeys/$journeyId'
+      preLoaderRoute: typeof JourneysJourneyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/courses/$slug': {
@@ -319,7 +379,10 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   SettingsRoute: SettingsRoute,
   CoursesSlugRoute: CoursesSlugRouteWithChildren,
+  JourneysJourneyIdRoute: JourneysJourneyIdRoute,
+  JourneysDraftRoute: JourneysDraftRoute,
   CoursesIndexRoute: CoursesIndexRoute,
+  JourneysIndexRoute: JourneysIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

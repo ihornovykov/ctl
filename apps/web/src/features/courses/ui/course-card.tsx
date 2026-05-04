@@ -2,7 +2,7 @@ import type { CourseListItem } from "@ctl/api/routers/courses/validation";
 import { Badge } from "@ctl/ui/components/badge";
 import { cn } from "@ctl/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Clock } from "lucide-react";
+import { ArrowUpRight, Clock } from "lucide-react";
 import { LANGUAGE_ICON_SRC } from "@/shared/constants";
 
 import {
@@ -21,34 +21,46 @@ export const CourseCard = ({ course, index = 0 }: Props) => {
 	const accent =
 		COURSE_CARD_LANG_ACCENT[course.language.id] ?? COURSE_CARD_DEFAULT_ACCENT;
 	const iconSrc =
-		LANGUAGE_ICON_SRC[course.language.id] ?? course.language.icon ?? null;
+		LANGUAGE_ICON_SRC[course.language.id] ??
+		course.icon ??
+		course.language.icon;
 
 	return (
 		<Link
 			className={cn(
-				"group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/60",
+				"group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/50",
 				"bg-card transition-all duration-300",
-				"hover:-translate-y-1 hover:border-border hover:shadow-black/10 hover:shadow-xl",
+				"hover:-translate-y-1.5 hover:border-border hover:shadow-black/8 hover:shadow-xl",
 				"ring-1 ring-transparent",
 				accent.ring,
 				"fade-in slide-in-from-bottom-4 animate-in fill-mode-backwards duration-500"
 			)}
 			params={{ slug: course.slug }}
-			style={{ animationDelay: `${index * 80}ms` }}
+			style={{ animationDelay: `${index * 10}ms` }}
 			to="/courses/$slug"
 		>
+			{/* Card header with language icon */}
 			<div
 				className={cn(
-					"relative flex h-36 items-center justify-center overflow-hidden",
+					"relative flex h-40 items-center justify-center overflow-hidden",
 					`bg-linear-to-br ${accent.from} ${accent.via} to-transparent`
 				)}
 			>
+				{/* Ambient glow blob */}
 				<div
 					className={cn(
-						"absolute size-32 rounded-full opacity-60 blur-3xl",
+						"absolute size-36 rounded-full opacity-50 blur-3xl transition-opacity duration-300 group-hover:opacity-75",
 						accent.glow
 					)}
 				/>
+				{/* Top-right subtle corner accent */}
+				<div
+					className={cn(
+						"absolute top-0 right-0 size-24 rounded-full opacity-20 blur-2xl",
+						accent.glow
+					)}
+				/>
+
 				{iconSrc ? (
 					<img
 						alt={course.language.name}
@@ -60,15 +72,18 @@ export const CourseCard = ({ course, index = 0 }: Props) => {
 						{course.language.name[0]}
 					</span>
 				)}
+
+				{/* Arrow icon top right */}
+				<div className="absolute top-3 right-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+					<ArrowUpRight className="size-4 text-foreground/50" />
+				</div>
 			</div>
 
+			{/* Card body */}
 			<div className="flex flex-1 flex-col gap-3 p-5">
-				<div className="flex items-start justify-between gap-2">
-					<h3 className="font-semibold text-base leading-snug tracking-tight">
-						{course.title}
-					</h3>
-					<ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground/50 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
-				</div>
+				<h3 className="font-semibold text-base leading-snug tracking-tight">
+					{course.title}
+				</h3>
 
 				<p className="line-clamp-2 text-muted-foreground text-sm leading-relaxed">
 					{course.shortDescription}

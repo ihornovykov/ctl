@@ -10,6 +10,7 @@ import {
 	ProfileHeaderSkeleton,
 	StatsGrid,
 	StatsGridSkeleton,
+	shouldShowLearningActivitySection,
 	useProfile,
 } from "@/features/dashboard";
 import { range } from "@/shared/lib/arrays";
@@ -74,6 +75,8 @@ const InProgressSkeleton = () => (
 
 export const DashboardView = () => {
 	const { data, isPending } = useProfile();
+	const showLearningActivity =
+		isPending || (data != null && shouldShowLearningActivitySection(data));
 
 	return (
 		<div className="flex flex-1 flex-col">
@@ -95,21 +98,23 @@ export const DashboardView = () => {
 						{!isPending && data && <StatsGrid stats={data.stats} />}
 					</section>
 
-					<section className="flex flex-col gap-4">
-						<div
-							className="fade-in slide-in-from-bottom-2 animate-in fill-mode-backwards duration-500"
-							style={{ animationDelay: "80ms" }}
-						>
-							<h2 className="font-semibold text-lg">Learning Activity</h2>
-						</div>
-						{isPending && <LearningChartsSkeleton />}
-						{!isPending && data && (
-							<LearningCharts
-								enrollments={data.enrollments}
-								weeklyLanguageActivity={data.weeklyLanguageActivity}
-							/>
-						)}
-					</section>
+					{showLearningActivity ? (
+						<section className="flex flex-col gap-4">
+							<div
+								className="fade-in slide-in-from-bottom-2 animate-in fill-mode-backwards duration-500"
+								style={{ animationDelay: "80ms" }}
+							>
+								<h2 className="font-semibold text-lg">Learning Activity</h2>
+							</div>
+							{isPending && <LearningChartsSkeleton />}
+							{!isPending && data && (
+								<LearningCharts
+									enrollments={data.enrollments}
+									weeklyLanguageActivity={data.weeklyLanguageActivity}
+								/>
+							)}
+						</section>
+					) : null}
 
 					<section className="flex flex-col gap-4">
 						<div

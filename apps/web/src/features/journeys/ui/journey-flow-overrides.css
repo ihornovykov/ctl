@@ -1,0 +1,5 @@
+.journey-flow-shell .react-flow .react-flow__handle {
+	pointer-events: auto !important;
+	touch-action: none;
+	cursor: crosshair;
+}

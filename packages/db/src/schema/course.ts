@@ -23,6 +23,8 @@ export const course = pgTable(
 		slug: text("slug").notNull().unique(),
 		description: text("description").notNull(),
 		shortDescription: text("short_description").notNull(),
+		category: text("category").notNull().default("languages"),
+		icon: text("icon"),
 		difficulty: text("difficulty").notNull(),
 		estimatedHours: integer("estimated_hours").notNull(),
 		sortOrder: integer("sort_order").notNull().default(0),

@@ -56,7 +56,9 @@ const LanguageStackedActivityChart = ({ data }: LanguageActivityProps) => {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex min-h-[180px] items-center justify-center px-2 sm:px-4">
-					<p className="text-muted-foreground text-sm">No courses yet</p>
+					<p className="text-muted-foreground text-sm">
+						No learning activity yet
+					</p>
 				</CardContent>
 			</Card>
 		);

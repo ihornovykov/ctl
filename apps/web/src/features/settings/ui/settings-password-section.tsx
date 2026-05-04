@@ -112,6 +112,7 @@ export const SettingsPasswordSection = () => {
 									aria-invalid={!!changeForm.formState.errors.currentPassword}
 									className="w-full"
 									id="current-password"
+									placeholder="Current password"
 									{...changeForm.register("currentPassword")}
 								/>
 								<FieldError>
@@ -128,6 +129,7 @@ export const SettingsPasswordSection = () => {
 									aria-invalid={!!changeForm.formState.errors.newPassword}
 									className="w-full"
 									id="new-password"
+									placeholder="New password"
 									{...changeForm.register("newPassword")}
 								/>
 								<FieldError>
@@ -146,6 +148,7 @@ export const SettingsPasswordSection = () => {
 									aria-invalid={!!changeForm.formState.errors.confirmPassword}
 									className="w-full"
 									id="confirm-new-password"
+									placeholder="Confirm new password"
 									{...changeForm.register("confirmPassword")}
 								/>
 								<FieldError>
@@ -154,7 +157,7 @@ export const SettingsPasswordSection = () => {
 							</Field>
 						</FieldGroup>
 					</CardContent>
-					<CardFooter className="justify-end border-border/60 border-t">
+					<CardFooter className="mt-4 justify-end">
 						<Button loading={changeForm.formState.isSubmitting} type="submit">
 							Save changes
 						</Button>
@@ -174,6 +177,7 @@ export const SettingsPasswordSection = () => {
 									aria-invalid={!!setForm.formState.errors.newPassword}
 									className="w-full"
 									id="set-new-password"
+									placeholder="New password"
 									{...setForm.register("newPassword")}
 								/>
 								<FieldError>
@@ -192,6 +196,7 @@ export const SettingsPasswordSection = () => {
 									aria-invalid={!!setForm.formState.errors.confirmPassword}
 									className="w-full"
 									id="set-confirm-password"
+									placeholder="Confirm password"
 									{...setForm.register("confirmPassword")}
 								/>
 								<FieldError>
@@ -200,7 +205,7 @@ export const SettingsPasswordSection = () => {
 							</Field>
 						</FieldGroup>
 					</CardContent>
-					<CardFooter className="justify-end border-border/60 border-t">
+					<CardFooter className="mt-4 justify-end">
 						<Button loading={setPasswordMutation.isPending} type="submit">
 							Save changes
 						</Button>

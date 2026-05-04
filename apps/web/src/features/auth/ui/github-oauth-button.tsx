@@ -8,7 +8,6 @@ type Props = {
 
 export const GithubOauthButton = ({ loading, onGithubSignIn }: Props) => (
 	<Button
-		className="h-11 w-full"
 		icon={<IconBrandGithub className="size-5" />}
 		loading={loading}
 		onClick={onGithubSignIn}

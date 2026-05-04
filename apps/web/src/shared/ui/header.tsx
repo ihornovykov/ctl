@@ -7,6 +7,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 const NAV_LINKS = [
 	{ to: "/courses", label: "Courses" },
+	{ to: "/journeys", label: "Journeys" },
 	{ to: "/dashboard", label: "Dashboard" },
 ] as const;
 
