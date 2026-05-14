@@ -1,0 +1,22 @@
+[Unit]
+Description=ctl web (Vite preview / TanStack Start production)
+After=network.target ctl-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/ctl/current/apps/web
+
+EnvironmentFile=/etc/ctl/server.env
+
+ExecStart=/usr/bin/pnpm run start
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ctl-web
+
+[Install]
+WantedBy=multi-user.target

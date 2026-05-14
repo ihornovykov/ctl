@@ -123,6 +123,15 @@ importers:
       better-auth:
         specifier: 'catalog:'
         version: 1.5.5(@tanstack/react-start@1.167.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(kysely@0.28.14)(pg@8.20.0))(mongodb@7.1.1)(pg@8.20.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      cpu-features:
+        specifier: ^0.0.10
+        version: 0.0.10
+      docker-modem:
+        specifier: ^5.0.7
+        version: 5.0.7
+      dockerode:
+        specifier: ^4.0.10
+        version: 4.0.10
       dotenv:
         specifier: 'catalog:'
         version: 17.3.1
@@ -132,6 +141,9 @@ importers:
       http-proxy:
         specifier: ^1.18.1
         version: 1.18.1
+      ssh2:
+        specifier: ^1.17.0
+        version: 1.17.0
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -8276,8 +8288,7 @@ snapshots:
       base64-js: 1.5.1
       ieee754: 1.2.1
 
-  buildcheck@0.0.7:
-    optional: true
+  buildcheck@0.0.7: {}
 
   bundle-name@4.1.0:
     dependencies:
@@ -8448,7 +8459,6 @@ snapshots:
     dependencies:
       buildcheck: 0.0.7
       nan: 2.26.2
-    optional: true
 
   cross-spawn@7.0.6:
     dependencies:
@@ -9906,8 +9916,7 @@ snapshots:
 
   mute-stream@2.0.0: {}
 
-  nan@2.26.2:
-    optional: true
+  nan@2.26.2: {}
 
   nanoid@3.3.11: {}
 

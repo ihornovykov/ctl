@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "@ctl/api": "workspace:*",
+    "cpu-features": "^0.0.10",
+    "docker-modem": "^5.0.7",
+    "dockerode": "^4.0.10",
+    "ssh2": "^1.17.0",
     "@ctl/auth": "workspace:*",
     "@ctl/db": "workspace:*",
     "@ctl/env": "workspace:*",

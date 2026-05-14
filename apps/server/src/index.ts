@@ -155,7 +155,7 @@ fastify.post("/api/tasks/grade-stream", async (request, reply) => {
 fastify.get("/", () => "OK");
 
 const listenPort = Number(process.env.PORT) || 3000;
-fastify.listen({ port: listenPort }, (err) => {
+fastify.listen({ port: listenPort, host: "0.0.0.0" }, (err) => {
 	if (err) {
 		fastify.log.error(err);
 		process.exit(1);

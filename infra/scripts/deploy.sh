@@ -30,9 +30,11 @@ echo "[deploy] pnpm install"
 pnpm install --frozen-lockfile
 
 # ── Build (web + server via Turborepo) ───────────────────────────────────────
-# VITE_SERVER_URL is injected into the environment by CI before this script runs
+# VITE_SERVER_URL is injected into the environment by CI before this script runs.
+# Limit Node heap to 1.5 GB so the OOM killer doesn't SIGKILL the process on a
+# 2 GB Droplet; the 2 GB swap added to the server handles the overflow.
 echo "[deploy] pnpm build"
-pnpm build
+NODE_OPTIONS="--max-old-space-size=1536" pnpm build
 
 # ── Database migrations ───────────────────────────────────────────────────────
 echo "[deploy] db:migrate"
@@ -68,18 +70,23 @@ ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
 echo "[deploy] restarting ctl-server"
 sudo systemctl restart ctl-server
 
+echo "[deploy] restarting ctl-web"
+sudo systemctl restart ctl-web
+
 echo "[deploy] reloading nginx"
 sudo systemctl reload nginx
 
 # ── Health check ─────────────────────────────────────────────────────────────
 echo "[deploy] health check"
-sleep 2
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/ || echo "000")
-if [ "$STATUS" != "200" ]; then
-    echo "[deploy] ERROR: health check failed (HTTP $STATUS) — rolling back symlink"
+sleep 8
+API=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/ || echo "000")
+WEB=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3001/ || echo "000")
+if [ "$API" != "200" ] || [ "$WEB" != "200" ]; then
+    echo "[deploy] ERROR: health check failed (API HTTP $API, web HTTP $WEB) — rolling back symlink"
     if [ -n "$PREV_SHA" ]; then
         ln -sfn "/opt/ctl/releases/$PREV_SHA" "$CURRENT_LINK"
         sudo systemctl restart ctl-server
+        sudo systemctl restart ctl-web
         echo "[deploy] rolled back to $PREV_SHA"
     fi
     exit 1
