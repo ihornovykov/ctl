@@ -49,3 +49,12 @@ coverage
 .cache
 tmp
 temp
+
+diploma-note.md
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars

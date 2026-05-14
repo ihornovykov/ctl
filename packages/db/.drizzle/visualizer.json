@@ -1,0 +1,15 @@
+[
+  { "id": "account", "position": { "x": 50, "y": 460 } },
+  { "id": "session", "position": { "x": 930, "y": 210 } },
+  { "id": "user", "position": { "x": 490, "y": 580 } },
+  { "id": "verification", "position": { "x": 50, "y": 1260 } },
+  { "id": "course", "position": { "x": 1370, "y": 870 } },
+  { "id": "enrollment", "position": { "x": 930, "y": 990 } },
+  { "id": "lesson", "position": { "x": 1810, "y": 50 } },
+  { "id": "lesson_progress", "position": { "x": 2250, "y": 90 } },
+  { "id": "language", "position": { "x": 1810, "y": 1050 } },
+  { "id": "grading_criteria", "position": { "x": 2690, "y": 430 } },
+  { "id": "submission", "position": { "x": 2690, "y": 1590 } },
+  { "id": "task", "position": { "x": 2250, "y": 830 } },
+  { "id": "task_test", "position": { "x": 2690, "y": 1030 } }
+]

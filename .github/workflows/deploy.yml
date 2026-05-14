@@ -1,0 +1,77 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys in parallel; queue the second one.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed so deploy.sh can run git diff for playground check
+
+      # ── SSH setup ───────────────────────────────────────────────────────────
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      # ── Rsync repo to release directory ─────────────────────────────────────
+      - name: Rsync to Droplet
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='.env*' \
+            --exclude='*.tfstate*' \
+            --exclude='.terraform' \
+            ./ deploy@104.248.249.105:/opt/ctl/releases/${{ github.sha }}/
+
+      # ── Write production env file on the server ──────────────────────────────
+      - name: Write server.env
+        run: |
+          ssh deploy@104.248.249.105 "cat > /etc/ctl/server.env << 'ENVEOF'
+          ${{ secrets.SERVER_ENV }}
+          ENVEOF"
+
+      # ── Bootstrap (idempotent: installs nginx site + systemd unit once) ─────
+      - name: Bootstrap server
+        run: |
+          ssh deploy@104.248.249.105 "bash /opt/ctl/releases/${{ github.sha }}/infra/scripts/server-bootstrap.sh"
+
+      # ── Deploy ───────────────────────────────────────────────────────────────
+      - name: Run deploy script
+        env:
+          VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
+        run: |
+          ssh deploy@104.248.249.105 \
+            "VITE_SERVER_URL='${{ secrets.VITE_SERVER_URL }}' \
+             bash /opt/ctl/releases/${{ github.sha }}/infra/scripts/deploy.sh ${{ github.sha }}"
+
+      # ── Health check from CI runner ──────────────────────────────────────────
+      - name: Health check
+        run: |
+          sleep 3
+          RESPONSE=$(curl -sf http://104.248.249.105/ || echo "FAILED")
+          if [ "$RESPONSE" = "FAILED" ]; then
+            echo "::error::Health check failed — server did not return 200"
+            exit 1
+          fi
+          echo "Health check passed: $RESPONSE"

@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "dotenv -e ../../apps/server/.env -- tsx src/seed.ts"
+    "db:seed": "dotenv -e ../../apps/server/.env -- tsx src/seed.ts",
+    "db:view": "concurrently \"pnpm drizzle-kit studio\" \"pnpm dlx drizzle-lab visualizer\" \"sleep 1 && pnpm dlx drizzle-view\""
   },
   "dependencies": {
     "@ctl/env": "workspace:*",
@@ -26,8 +27,9 @@
   "devDependencies": {
     "@ctl/config": "workspace:*",
     "@types/pg": "^8.16.0",
+    "concurrently": "^9.2.1",
     "dotenv-cli": "^11.0.0",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "^0.31.10",
     "typescript": "^5"
   }
 }
