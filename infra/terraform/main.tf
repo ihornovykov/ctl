@@ -34,10 +34,13 @@ resource "digitalocean_firewall" "ctl" {
 
   droplet_ids = [digitalocean_droplet.ctl.id]
 
+  # SSH open to all IPs — key-only auth is enforced on the VM (PasswordAuthentication no).
+  # GitHub Actions runners (ubuntu-latest) use dynamic IPs so restricting by source breaks CI.
+  # To restrict to only your IP, remove the deploy workflow's SSH step or use a self-hosted runner.
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = var.ssh_allowlist_cidrs
+    source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
   inbound_rule {
