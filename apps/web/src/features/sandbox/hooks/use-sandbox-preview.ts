@@ -29,6 +29,13 @@ type UseSandboxPreviewResult = {
 const DEBOUNCE_MS = 500;
 const TRAILING_SLASH_RE = /\/?$/;
 
+const previewPublicOrigin = (): string => {
+	if (import.meta.env.PROD && typeof window !== "undefined") {
+		return window.location.origin;
+	}
+	return env.VITE_SERVER_URL.replace(TRAILING_SLASH_RE, "");
+};
+
 const buildStaticInitialFiles = (task: SandboxTask): Record<string, string> => {
 	const o = { ...task.starterFiles };
 	for (const t of task.tests) {
@@ -95,7 +102,7 @@ export const useSandboxPreview = (
 				setViteSessionId(sid);
 				const preview = new URL(
 					`/preview/${sid}/`,
-					`${env.VITE_SERVER_URL.replace(TRAILING_SLASH_RE, "/")}`
+					`${previewPublicOrigin()}/`
 				);
 				preview.searchParams.set("g", previewGateToken);
 				setPreviewUrl(preview.toString());
