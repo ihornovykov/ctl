@@ -13,7 +13,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import type { orpc } from "@/shared/api";
 import { PROJECT_NAME } from "@/shared/constants";
 import { ThemeProvider } from "@/shared/providers";
-import { DialogRenderer, Header } from "@/shared/ui";
+import { DialogRenderer, Header, SheetRenderer } from "@/shared/ui";
 import appCss from "../index.css?url";
 
 const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem('codelearn-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`;
@@ -61,6 +61,7 @@ function RootDocument() {
 						<Outlet />
 					</div>
 					<DialogRenderer />
+					<SheetRenderer />
 					<Toaster richColors />
 				</ThemeProvider>
 				<TanStackRouterDevtools position="bottom-left" />

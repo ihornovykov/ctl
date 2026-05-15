@@ -20,9 +20,9 @@ export const UserMenu = () => {
 
 	if (isPending) {
 		return (
-			<div className="flex items-center gap-2">
-				<Skeleton className="size-6 rounded-full" />
-				<Skeleton className="h-4 w-20" />
+			<div className="flex items-center gap-0 md:gap-2">
+				<Skeleton className="size-6 shrink-0 rounded-full" />
+				<Skeleton className="hidden h-4 w-20 md:block" />
 			</div>
 		);
 	}
@@ -47,7 +47,8 @@ export const UserMenu = () => {
 			<DropdownMenuTrigger
 				render={
 					<button
-						className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+						aria-label={`Account menu (${user.name ?? user.email})`}
+						className="flex items-center gap-0 rounded-full p-0.5 text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring md:gap-2 md:rounded-md md:px-2 md:py-1.5"
 						type="button"
 					/>
 				}
@@ -58,8 +59,10 @@ export const UserMenu = () => {
 					)}
 					<AvatarFallback>{initials}</AvatarFallback>
 				</Avatar>
-				<span className="max-w-28 truncate font-medium">{user.name}</span>
-				<ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+				<span className="hidden max-w-28 truncate font-medium md:inline-block">
+					{user.name}
+				</span>
+				<ChevronDown className="hidden size-3.5 shrink-0 text-muted-foreground md:block" />
 			</DropdownMenuTrigger>
 
 			<DropdownMenuContent align="end" className="w-auto min-w-60">
