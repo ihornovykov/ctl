@@ -4,6 +4,8 @@ import { env } from "@ctl/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
+const usesHttps = env.BETTER_AUTH_URL.startsWith("https:");
+
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
@@ -33,8 +35,8 @@ export const auth = betterAuth({
 	baseURL: env.BETTER_AUTH_URL,
 	advanced: {
 		defaultCookieAttributes: {
-			sameSite: "none",
-			secure: true,
+			sameSite: usesHttps ? "none" : "lax",
+			secure: usesHttps,
 			httpOnly: true,
 		},
 	},
