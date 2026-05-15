@@ -30,7 +30,8 @@ echo "[deploy] pnpm install"
 pnpm install --frozen-lockfile
 
 # ── Build (web + server via Turborepo) ───────────────────────────────────────
-# VITE_SERVER_URL is injected into the environment by CI before this script runs.
+# VITE_* vars are injected by CI over SSH (Vite bakes them in at build time).
+# VITE_SANDBOX_VITE_ENABLED=true enables Docker playground preview in the SPA.
 # Limit Node heap to 1.5 GB so the OOM killer doesn't SIGKILL the process on a
 # 2 GB Droplet; the 2 GB swap added to the server handles the overflow.
 echo "[deploy] pnpm build"

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { orpc } from "@/shared/api";
 import { client } from "@/shared/api/orpc";
+import { randomId } from "@/shared/lib/random-id";
 
 import type {
 	SandboxSubmissionOutput,
@@ -27,7 +28,7 @@ const buildMockSubmission = (
 	const testsPassed = testResults.every((r) => r.passed);
 	const maxScore = 10;
 	return {
-		id: crypto.randomUUID(),
+		id: randomId(),
 		files,
 		testsPassed,
 		score: testsPassed ? maxScore : 0,

@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { create } from "zustand";
 
+import { randomId } from "@/shared/lib/random-id";
+
 export type DialogButton = {
 	icon?: ReactNode;
 	loading?: boolean;
@@ -35,7 +37,7 @@ type State = {
 export const useDialogsStore = create<State>((set, get) => ({
 	stack: [],
 	open: (item) => {
-		const id = crypto.randomUUID();
+		const id = randomId();
 		set((s) => ({ stack: [...s.stack, { ...item, id, visible: true }] }));
 		return id;
 	},

@@ -60,9 +60,12 @@ jobs:
       - name: Run deploy script
         env:
           VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
+          VITE_SANDBOX_VITE_ENABLED: ${{ secrets.VITE_SANDBOX_VITE_ENABLED }}
         run: |
+          SANDBOX="${VITE_SANDBOX_VITE_ENABLED:-true}"
           ssh deploy@104.248.249.105 \
             "VITE_SERVER_URL='${{ secrets.VITE_SERVER_URL }}' \
+             VITE_SANDBOX_VITE_ENABLED='${SANDBOX}' \
              bash /opt/ctl/releases/${{ github.sha }}/infra/scripts/deploy.sh ${{ github.sha }}"
 
       # ── Health check from CI runner ──────────────────────────────────────────

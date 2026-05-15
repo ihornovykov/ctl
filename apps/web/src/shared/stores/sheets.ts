@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { create } from "zustand";
 
+import { randomId } from "@/shared/lib/random-id";
+
 export type SheetOpenOptions = {
 	title: string;
 	content: ReactNode;
@@ -20,7 +22,7 @@ type State = {
 export const useSheetsStore = create<State>((set, get) => ({
 	stack: [],
 	open: (options) => {
-		const id = crypto.randomUUID();
+		const id = randomId();
 		set((s) => ({
 			stack: [...s.stack, { ...options, id, visible: false }],
 		}));
