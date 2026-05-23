@@ -72,9 +72,9 @@ jobs:
       - name: Health check
         run: |
           sleep 3
-          RESPONSE=$(curl -sf http://104.248.249.105/ || echo "FAILED")
-          if [ "$RESPONSE" = "FAILED" ]; then
-            echo "::error::Health check failed — server did not return 200"
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" https://codetolearn.dev/ || echo "000")
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Health check failed — https://codetolearn.dev/ returned HTTP $HTTP_CODE"
             exit 1
           fi
-          echo "Health check passed: $RESPONSE"
+          echo "Health check passed: https://codetolearn.dev/ HTTP $HTTP_CODE"

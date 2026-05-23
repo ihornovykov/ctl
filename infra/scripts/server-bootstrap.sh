@@ -8,28 +8,78 @@ NGINX_AVAILABLE="/etc/nginx/sites-available/ctl.conf"
 NGINX_ENABLED="/etc/nginx/sites-enabled/ctl.conf"
 SYSTEMD_UNIT_SERVER="/etc/systemd/system/ctl-server.service"
 SYSTEMD_UNIT_WEB="/etc/systemd/system/ctl-web.service"
+CERT_PATH="/etc/letsencrypt/live/codetolearn.dev/fullchain.pem"
+DOMAIN="codetolearn.dev"
+CERTBOT_WEBROOT="/var/www/certbot"
 # Derive root from this script's own location (infra/scripts/server-bootstrap.sh)
 # so it works before /opt/ctl/current symlink is flipped on first deploy.
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
 echo "[bootstrap] starting"
 
-# ── nginx site config ────────────────────────────────────────────────────────
-if [ ! -f "$NGINX_AVAILABLE" ]; then
-    echo "[bootstrap] installing nginx site config"
-    sudo cp "$REPO_ROOT/infra/nginx/ctl.conf" "$NGINX_AVAILABLE"
+# ── certbot (for Let's Encrypt; install once as root on the Droplet) ─────────
+if ! command -v certbot >/dev/null 2>&1; then
+    echo "[bootstrap] WARNING: certbot not installed — run as root: apt-get install -y certbot"
+fi
+
+mkdir -p "$CERTBOT_WEBROOT"
+
+nginx_src_for_cert() {
+    if [ -f "$CERT_PATH" ]; then
+        echo "$REPO_ROOT/infra/nginx/ctl.conf"
+    else
+        echo "$REPO_ROOT/infra/nginx/ctl-http-only.conf"
+    fi
+}
+
+install_nginx_config() {
+    local src
+    src="$(nginx_src_for_cert)"
+    sudo cp "$src" "$NGINX_AVAILABLE"
     sudo ln -sf "$NGINX_AVAILABLE" "$NGINX_ENABLED"
     sudo rm -f /etc/nginx/sites-enabled/default
     sudo nginx -t
     sudo systemctl reload nginx
-else
-    # Update config in case it changed; only reload if nginx -t passes
-    if ! diff -q "$REPO_ROOT/infra/nginx/ctl.conf" "$NGINX_AVAILABLE" >/dev/null 2>&1; then
-        echo "[bootstrap] nginx config changed — updating"
-        sudo cp "$REPO_ROOT/infra/nginx/ctl.conf" "$NGINX_AVAILABLE"
-        sudo nginx -t
-        sudo systemctl reload nginx
+}
+
+# ── nginx site config ─ sibling ────────────────────────────────────────────
+nginx_src="$(nginx_src_for_cert)"
+if [ "$nginx_src" = "$REPO_ROOT/infra/nginx/ctl-http-only.conf" ]; then
+    echo "[bootstrap] TLS cert not found — using HTTP-only nginx config"
+fi
+
+if [ ! -f "$NGINX_AVAILABLE" ]; then
+    echo "[bootstrap] installing nginx site config"
+    install_nginx_config
+elif ! diff -q "$nginx_src" "$NGINX_AVAILABLE" >/dev/null 2>&1; then
+    echo "[bootstrap] nginx config changed — updating"
+    install_nginx_config
+fi
+
+# ── TLS certificate (requires DNS A record → this Droplet) ───────────────────
+if [ ! -f "$CERT_PATH" ]; then
+  resolved_ip="$(getent ahostsv4 "$DOMAIN" 2>/dev/null | awk '{print $1; exit}' || true)"
+  droplet_ip="$(curl -sf -4 --max-time 5 https://api.ipify.org || true)"
+
+  if [ -n "$resolved_ip" ] && [ -n "$droplet_ip" ] && [ "$resolved_ip" = "$droplet_ip" ]; then
+    echo "[bootstrap] DNS OK ($DOMAIN → $resolved_ip) — requesting certificate"
+    if sudo certbot certonly \
+      --webroot \
+      -w "$CERTBOT_WEBROOT" \
+      -d "$DOMAIN" \
+      --non-interactive \
+      --agree-tos \
+      --register-unsafely-without-email \
+      --keep-until-expiring; then
+      echo "[bootstrap] certificate issued — switching to HTTPS nginx config"
+      install_nginx_config
+    else
+      echo "[bootstrap] certbot failed — still serving HTTP only"
     fi
+  else
+    echo "[bootstrap] skipping certbot: $DOMAIN resolves to '${resolved_ip:-unknown}', droplet is '${droplet_ip:-unknown}'"
+    echo "[bootstrap] add an A record at name.com: @ → $droplet_ip"
+  fi
 fi
 
 # ── systemd: API + web ───────────────────────────────────────────────────────
