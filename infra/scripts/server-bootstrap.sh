@@ -24,8 +24,12 @@ fi
 
 mkdir -p "$CERTBOT_WEBROOT"
 
+cert_exists() {
+    sudo certbot certificates 2>/dev/null | grep -qF "Certificate Name: $DOMAIN"
+}
+
 nginx_src_for_cert() {
-    if [ -f "$CERT_PATH" ]; then
+    if cert_exists; then
         echo "$REPO_ROOT/infra/nginx/ctl.conf"
     else
         echo "$REPO_ROOT/infra/nginx/ctl-http-only.conf"
@@ -57,7 +61,7 @@ elif ! diff -q "$nginx_src" "$NGINX_AVAILABLE" >/dev/null 2>&1; then
 fi
 
 # ── TLS certificate (requires DNS A record → this Droplet) ───────────────────
-if [ ! -f "$CERT_PATH" ]; then
+if ! cert_exists; then
   resolved_ip="$(getent ahostsv4 "$DOMAIN" 2>/dev/null | awk '{print $1; exit}' || true)"
   droplet_ip="$(curl -sf -4 --max-time 5 https://api.ipify.org || true)"
 
@@ -82,6 +86,14 @@ if [ ! -f "$CERT_PATH" ]; then
   fi
 fi
 
+if cert_exists; then
+    nginx_src="$(nginx_src_for_cert)"
+    if ! diff -q "$nginx_src" "$NGINX_AVAILABLE" >/dev/null 2>&1; then
+        echo "[bootstrap] TLS cert present — enabling HTTPS nginx config"
+        install_nginx_config
+    fi
+fi
+
 # ── systemd: API + web ───────────────────────────────────────────────────────
 install_unit() {
     local src="$1" dest="$2" name="$3"
@@ -99,5 +111,12 @@ install_unit() {
 
 install_unit "$REPO_ROOT/infra/systemd/ctl-server.service" "$SYSTEMD_UNIT_SERVER" ctl-server
 install_unit "$REPO_ROOT/infra/systemd/ctl-web.service" "$SYSTEMD_UNIT_WEB" ctl-web
+
+if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status: active"; then
+    if ! ufw status | grep -q "443/tcp"; then
+        echo "[bootstrap] opening UFW port 443"
+        sudo ufw allow 443/tcp || echo "[bootstrap] WARNING: could not open UFW 443 — run as root: ufw allow 443/tcp"
+    fi
+fi
 
 echo "[bootstrap] done"

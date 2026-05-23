@@ -9,4 +9,7 @@ export default defineConfig({
 	server: {
 		port: 3001,
 	},
+	preview: {
+		allowedHosts: ["codetolearn.dev", "104.248.249.105", "localhost"],
+	},
 });
