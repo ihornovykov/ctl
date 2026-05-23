@@ -1,7 +1,7 @@
 import { Button } from "@ctl/ui/components/button";
 import { cn } from "@ctl/ui/lib/utils";
 import { Cpu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConsoleOutput, TestResults } from "@/features/tasks";
 import { useSandboxMainSplit } from "../hooks/use-sandbox-main-split";
 import { useSandboxPlaygroundLogs } from "../hooks/use-sandbox-playground-logs";
@@ -35,6 +35,7 @@ type SandboxPreviewPanelProps = {
 	previewUrl: string | null;
 	error: string | null;
 	isBuilding: boolean;
+	isUpdatingPreview: boolean;
 };
 
 const SandboxPreviewPanel = ({
@@ -42,10 +43,15 @@ const SandboxPreviewPanel = ({
 	previewUrl,
 	error,
 	isBuilding,
+	isUpdatingPreview,
 }: SandboxPreviewPanelProps) => (
 	<div className="relative z-0 flex min-h-0 w-full min-w-0 flex-1 flex-col">
 		<SandboxPreviewIframe html={html} previewSrc={previewUrl} />
-		<SandboxPreviewStatus error={error} isBuilding={isBuilding} />
+		<SandboxPreviewStatus
+			error={error}
+			isBuilding={isBuilding}
+			isUpdatingPreview={isUpdatingPreview}
+		/>
 	</div>
 );
 
@@ -116,6 +122,7 @@ type SandboxRightPanelLayersProps = {
 	previewUrl: string | null;
 	error: string | null;
 	isBuilding: boolean;
+	isUpdatingPreview: boolean;
 	task: SandboxTask;
 	currentSubmission: SandboxSubmissionOutput | null;
 	viteSandboxEnabled: boolean;
@@ -133,6 +140,7 @@ const SandboxRightPanelLayers = ({
 	previewUrl,
 	error,
 	isBuilding,
+	isUpdatingPreview,
 	task,
 	currentSubmission,
 	viteSandboxEnabled,
@@ -154,6 +162,7 @@ const SandboxRightPanelLayers = ({
 				error={error}
 				html={html}
 				isBuilding={isBuilding}
+				isUpdatingPreview={isUpdatingPreview}
 				previewUrl={previewUrl}
 			/>
 		</div>
@@ -285,17 +294,30 @@ export const SandboxWorkspace = ({
 		return () => clearTimeout(timeout);
 	}, [files, task.id, isReadOnly]);
 
-	const { html, previewUrl, isBuilding, error, triggerNow } = useSandboxPreview(
-		{
+	const { html, previewUrl, isBuilding, isUpdatingPreview, error, triggerNow } =
+		useSandboxPreview({
 			task,
 			enabled: true,
-		}
-	);
+		});
 
 	const viteEnv = (
 		import.meta as unknown as { env: Record<string, string | undefined> }
 	).env.VITE_SANDBOX_VITE_ENABLED;
 	const viteSandboxEnabled = viteEnv === "true" || viteEnv === "1";
+
+	const prevActiveTabRef = useRef(activeTab);
+	useEffect(() => {
+		const prev = prevActiveTabRef.current;
+		prevActiveTabRef.current = activeTab;
+		if (
+			!isReadOnly &&
+			viteSandboxEnabled &&
+			activeTab === "preview" &&
+			prev !== "preview"
+		) {
+			triggerNow();
+		}
+	}, [activeTab, isReadOnly, triggerNow, viteSandboxEnabled]);
 
 	useSandboxPlaygroundLogs({
 		sessionId: viteSessionId,
@@ -478,6 +500,7 @@ export const SandboxWorkspace = ({
 						html={html}
 						isBuilding={isBuilding}
 						isReadOnly={isReadOnly}
+						isUpdatingPreview={isUpdatingPreview}
 						previewUrl={previewUrl}
 						task={task}
 						testResults={testResults}

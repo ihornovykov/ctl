@@ -14,15 +14,16 @@ type TestResult = {
 	error?: string;
 };
 
-const LANGUAGE_CONFIGS: Record<
-	string,
-	{
-		image: string;
-		ext: string;
-		runCmd: (file: string) => string[];
-		memoryBytes?: number;
-	}
-> = {
+type LanguageConfig = {
+	image: string;
+	ext: string;
+	runCmd: (file: string) => string[];
+	memoryBytes?: number;
+	timeoutMs?: number;
+	runTestsSequential?: boolean;
+};
+
+const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
 	javascript: {
 		image: "node:20-alpine",
 		ext: ".js",
@@ -43,6 +44,8 @@ const LANGUAGE_CONFIGS: Record<
 		ext: ".go",
 		runCmd: (file) => ["go", "run", file],
 		memoryBytes: 512 * 1024 * 1024,
+		timeoutMs: 45_000,
+		runTestsSequential: true,
 	},
 	c: {
 		image: "gcc:14",
@@ -58,6 +61,29 @@ const LANGUAGE_CONFIGS: Record<
 		],
 		memoryBytes: 256 * 1024 * 1024,
 	},
+};
+
+const DEFAULT_TIMEOUT_MS = 10_000;
+const DEFAULT_MEMORY = 128 * 1024 * 1024;
+const GO_PACKAGE_LINE_RE = /^(package\s+\w+[^\n]*\n)/m;
+const GO_FUNC_MAIN_RE = /\bfunc main\b/;
+const GO_FMT_USAGE_RE = /\bfmt\./;
+
+const renameGoMainForTests = (code: string): string =>
+	code.replace(GO_FUNC_MAIN_RE, "func __user_main__");
+
+const prepareGoForRun = (code: string): string => {
+	if (GO_FUNC_MAIN_RE.test(code)) {
+		return code;
+	}
+	return `${code.trimEnd()}\n\nfunc main() {}\n`;
+};
+
+const ensureGoFmtImport = (code: string): string => {
+	if (code.includes('"fmt"') || !GO_FMT_USAGE_RE.test(code)) {
+		return code;
+	}
+	return code.replace(GO_PACKAGE_LINE_RE, '$1\nimport "fmt"\n');
 };
 
 const ensureImage = async (image: string): Promise<void> => {
@@ -80,14 +106,12 @@ const ensureImage = async (image: string): Promise<void> => {
 	}
 };
 
-const DEFAULT_MEMORY = 128 * 1024 * 1024;
-
 const runInContainer = async (
 	image: string,
 	cmd: string[],
 	code: string,
 	filename: string,
-	timeoutMs = 10_000,
+	timeoutMs = DEFAULT_TIMEOUT_MS,
 	memoryBytes = DEFAULT_MEMORY
 ): Promise<ExecResult> => {
 	await ensureImage(image);
@@ -159,25 +183,98 @@ const runInContainer = async (
 export const executeCode = async (
 	languageId: string,
 	code: string,
-	timeoutMs = 10_000
+	timeoutMs = DEFAULT_TIMEOUT_MS
 ): Promise<ExecResult> => {
 	const config = LANGUAGE_CONFIGS[languageId];
 	if (!config) {
 		throw new Error(`Unsupported language: ${languageId}`);
 	}
 
+	const preparedCode = languageId === "go" ? prepareGoForRun(code) : code;
+	const effectiveTimeout = config.timeoutMs ?? timeoutMs;
+
 	const filename = `code${config.ext}`;
 	return await runInContainer(
 		config.image,
 		config.runCmd(filename),
-		code,
+		preparedCode,
 		filename,
-		timeoutMs,
+		effectiveTimeout,
 		config.memoryBytes
 	);
 };
 
-const GO_PACKAGE_LINE_RE = /^(package\s+\w+[^\n]*\n)/m;
+const prepareCombinedCode = (
+	languageId: string,
+	userCode: string,
+	testCode: string
+): string => {
+	if (languageId === "c" || languageId === "cpp") {
+		return `#define main __user_main__\n${userCode}\n#undef main\n\n${testCode}`;
+	}
+
+	if (languageId === "go") {
+		const combined = `${renameGoMainForTests(userCode)}\n\n${testCode}`;
+		return ensureGoFmtImport(combined);
+	}
+
+	return `${userCode}\n\n${testCode}`;
+};
+
+const parseTestRunOutput = (
+	title: string,
+	stdout: string,
+	stderr: string,
+	exitCode: number
+): TestResult => {
+	if (exitCode !== 0) {
+		return { title, passed: false, error: stderr || stdout };
+	}
+
+	try {
+		const lastLine = stdout
+			.split("\n")
+			.filter((l) => l.trim())
+			.at(-1);
+		if (lastLine) {
+			const parsed = JSON.parse(lastLine) as { passed?: boolean };
+			return { title, passed: parsed.passed === true };
+		}
+	} catch {
+		// stdout doesn't contain JSON — treat as passed if exit code was 0
+	}
+
+	return { title, passed: true };
+};
+
+const runSingleTest = async (
+	config: LanguageConfig,
+	languageId: string,
+	userCode: string,
+	test: { title: string; testCode: string }
+): Promise<TestResult> => {
+	const combined = prepareCombinedCode(languageId, userCode, test.testCode);
+	const filename = `test${config.ext}`;
+	const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+
+	try {
+		const { stdout, stderr, exitCode } = await runInContainer(
+			config.image,
+			config.runCmd(filename),
+			combined,
+			filename,
+			timeoutMs,
+			config.memoryBytes
+		);
+		return parseTestRunOutput(test.title, stdout, stderr, exitCode);
+	} catch (err) {
+		return {
+			title: test.title,
+			passed: false,
+			error: err instanceof Error ? err.message : String(err),
+		};
+	}
+};
 
 export const runTests = async (
 	languageId: string,
@@ -189,65 +286,17 @@ export const runTests = async (
 		throw new Error(`Unsupported language: ${languageId}`);
 	}
 
-	const prepareUserCode = (code: string): string => {
-		if (languageId === "c" || languageId === "cpp") {
-			return `#define main __user_main__\n${code}\n#undef main`;
+	if (config.runTestsSequential) {
+		const results: TestResult[] = [];
+		for (const test of tests) {
+			results.push(await runSingleTest(config, languageId, userCode, test));
 		}
+		return results;
+	}
 
-		if (languageId === "go") {
-			let prepared = code.replace(/\bfunc main\b/g, "func __user_main__");
-			if (!prepared.includes('"fmt"')) {
-				prepared = prepared.replace(GO_PACKAGE_LINE_RE, '$1\nimport "fmt"\n');
-			}
-			return prepared;
-		}
-
-		return code;
-	};
-
-	const results = await Promise.all(
-		tests.map(async ({ title, testCode }) => {
-			const combined = `${prepareUserCode(userCode)}\n\n${testCode}`;
-			const filename = `test${config.ext}`;
-			try {
-				const { stdout, stderr, exitCode } = await runInContainer(
-					config.image,
-					config.runCmd(filename),
-					combined,
-					filename,
-					undefined,
-					config.memoryBytes
-				);
-
-				if (exitCode !== 0) {
-					return { title, passed: false, error: stderr || stdout };
-				}
-
-				try {
-					const lastLine = stdout
-						.split("\n")
-						.filter((l) => l.trim())
-						.at(-1);
-					if (lastLine) {
-						const parsed = JSON.parse(lastLine) as { passed?: boolean };
-						return { title, passed: parsed.passed === true };
-					}
-				} catch {
-					// stdout doesn't contain JSON — treat as passed if exit code was 0
-				}
-
-				return { title, passed: true };
-			} catch (err) {
-				return {
-					title,
-					passed: false,
-					error: err instanceof Error ? err.message : String(err),
-				};
-			}
-		})
+	return await Promise.all(
+		tests.map((test) => runSingleTest(config, languageId, userCode, test))
 	);
-
-	return results;
 };
 
 export const warmDockerImages = async (): Promise<void> => {

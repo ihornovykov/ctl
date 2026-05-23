@@ -1,7 +1,7 @@
 import { Skeleton } from "@ctl/ui/components/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { BookOpen } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useCompleteLesson, useLesson } from "@/features/courses";
 import {
@@ -95,12 +95,27 @@ const SandboxWorkspaceInner = ({
 	const reset = useSandboxWorkspace((s) => s.reset);
 	const submitMutation = useSandboxSubmit(lessonId);
 
-	useEffect(() => {
+	const workspaceResetKey = useMemo(() => {
 		if (!data || data.kind !== "sandbox") {
+			return null;
+		}
+		const at = data.submission?.submittedAt;
+		return `${lessonId}:${data.task.id}:${at == null ? "none" : String(at)}`;
+	}, [lessonId, data]);
+
+	const dataRef = useRef(data);
+	dataRef.current = data;
+
+	useEffect(() => {
+		if (!workspaceResetKey) {
 			return;
 		}
-		reset(data.submission ?? null);
-	}, [data, reset]);
+		const d = dataRef.current;
+		if (!d || d.kind !== "sandbox") {
+			return;
+		}
+		reset(d.submission ?? null);
+	}, [workspaceResetKey, reset]);
 
 	const onNextLesson = () => {
 		const destination = nextLessonSlug

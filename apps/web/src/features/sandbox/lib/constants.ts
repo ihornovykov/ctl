@@ -152,6 +152,8 @@ export const SANDBOX_EDITOR_SURFACE = "#15191d";
 export const SANDBOX_EDITOR_FONT_WEIGHT = "500";
 
 export const SANDBOX_WORKSPACE_AUTO_SAVE_DELAY_MS = 1000;
+export const SANDBOX_PREVIEW_SYNC_DEBOUNCE_MS = 800;
+export const SANDBOX_PREVIEW_HMR_SETTLE_MS = 400;
 
 export const SANDBOX_WORKSPACE_RIGHT_TABS = [
 	{ id: "overview" as const, label: "Overview", icon: BookOpen },

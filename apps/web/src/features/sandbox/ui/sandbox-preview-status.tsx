@@ -3,10 +3,15 @@ import { AlertCircle, Loader2 } from "lucide-react";
 
 type Props = {
 	isBuilding: boolean;
+	isUpdatingPreview: boolean;
 	error: string | null;
 };
 
-export const SandboxPreviewStatus = ({ isBuilding, error }: Props) => {
+export const SandboxPreviewStatus = ({
+	isBuilding,
+	isUpdatingPreview,
+	error,
+}: Props) => {
 	if (error) {
 		return (
 			<div
@@ -23,7 +28,7 @@ export const SandboxPreviewStatus = ({ isBuilding, error }: Props) => {
 		);
 	}
 
-	if (isBuilding) {
+	if (isBuilding || isUpdatingPreview) {
 		return (
 			<div
 				className={cn(
@@ -36,7 +41,9 @@ export const SandboxPreviewStatus = ({ isBuilding, error }: Props) => {
 						aria-hidden
 						className="size-3.5 shrink-0 animate-spin text-primary"
 					/>
-					<span className="min-w-0 truncate">Building preview…</span>
+					<span className="min-w-0 truncate">
+						{isBuilding ? "Building preview…" : "Updating preview…"}
+					</span>
 				</p>
 			</div>
 		);
