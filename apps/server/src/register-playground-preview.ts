@@ -6,10 +6,12 @@ import {
 	type PlaygroundPreviewAuth,
 	resolvePlaygroundPreviewUpstream,
 } from "@ctl/api/lib/playground-session";
+import { env } from "@ctl/env/server";
 import type { FastifyInstance } from "fastify";
 import httpProxy from "http-proxy";
 
 const PREVIEW_SESSION_PATH = /^\/preview\/([^/?#]+)/;
+const usesHttps = env.BETTER_AUTH_URL.startsWith("https:");
 
 const swallowSyncWriteFailure = () => {
 	return;
@@ -61,7 +63,7 @@ export const registerPlaygroundPreviewProxy = (fastify: FastifyInstance) => {
 		if (typeof head !== "string" || !head.includes("text/html")) {
 			return;
 		}
-		const cookieStr = `playground_pv=${encodeURIComponent(pv)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=7200`;
+		const cookieStr = `playground_pv=${encodeURIComponent(pv)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=7200${usesHttps ? "; Secure" : ""}`;
 		const existing = proxyRes.headers["set-cookie"];
 		if (Array.isArray(existing)) {
 			proxyRes.headers["set-cookie"] = [...existing, cookieStr];

@@ -8,6 +8,25 @@ import { nanoid } from "nanoid";
 
 const docker = new Docker();
 
+type PlaygroundHmrEnv = {
+	clientPort: number;
+	protocol: "ws" | "wss";
+};
+
+const getPlaygroundHmrEnv = (): PlaygroundHmrEnv => {
+	try {
+		const url = new URL(env.BETTER_AUTH_URL);
+		const isHttps = url.protocol === "https:";
+		const clientPort = url.port ? Number(url.port) : isHttps ? 443 : 80;
+		return { clientPort, protocol: isHttps ? "wss" : "ws" };
+	} catch {
+		return {
+			clientPort: Number(process.env.PORT) || 3000,
+			protocol: "ws",
+		};
+	}
+};
+
 export type PlaygroundFramework = "react" | "vue";
 
 export type PlaygroundLogEvent = {
@@ -298,8 +317,8 @@ const runDevLogStream = async (
 ) => {
 	try {
 		const basePath = `/preview/${sessionId}/`;
-		const publicPort = String(Number(process.env.PORT) || 3000);
-		const devCmd = `cd /workspace && PLAYGROUND_HMR_CLIENT_PORT=${publicPort} PLAYGROUND_VITE_BASE=${JSON.stringify(basePath)} npm run dev -- --host 0.0.0.0 --port 5173`;
+		const { clientPort, protocol } = getPlaygroundHmrEnv();
+		const devCmd = `cd /workspace && PLAYGROUND_HMR_CLIENT_PORT=${clientPort} PLAYGROUND_HMR_PROTOCOL=${protocol} PLAYGROUND_VITE_BASE=${JSON.stringify(basePath)} npm run dev -- --host 0.0.0.0 --port 5173`;
 		const exec = await container.exec({
 			Cmd: ["sh", "-c", devCmd],
 			AttachStdout: true,
