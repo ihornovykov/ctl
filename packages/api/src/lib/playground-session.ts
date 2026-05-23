@@ -17,7 +17,14 @@ const getPlaygroundHmrEnv = (): PlaygroundHmrEnv => {
 	try {
 		const url = new URL(env.BETTER_AUTH_URL);
 		const isHttps = url.protocol === "https:";
-		const clientPort = url.port ? Number(url.port) : isHttps ? 443 : 80;
+		let clientPort: number;
+		if (url.port) {
+			clientPort = Number(url.port);
+		} else if (isHttps) {
+			clientPort = 443;
+		} else {
+			clientPort = 80;
+		}
 		return { clientPort, protocol: isHttps ? "wss" : "ws" };
 	} catch {
 		return {

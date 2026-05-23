@@ -79,7 +79,7 @@ sudo systemctl reload nginx
 
 # ── Health check ─────────────────────────────────────────────────────────────
 echo "[deploy] health check"
-sleep 8
+sleep 15
 API=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/ || echo "000")
 WEB=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3001/ || echo "000")
 if [ "$API" != "200" ] || [ "$WEB" != "200" ]; then
