@@ -4,13 +4,12 @@ import { cn } from "@ctl/ui/lib/utils";
 import { IconAlertCircle, IconUser, IconX } from "@tabler/icons-react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-
+import { client } from "@/shared/api/orpc";
 import {
 	type FileWithPreview,
 	formatBytes,
 	useFileUpload,
-} from "@/hooks/use-file-upload";
-import { client } from "@/shared/api/orpc";
+} from "@/shared/hooks/use-file-upload";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 
