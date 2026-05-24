@@ -1,0 +1,68 @@
+import type { LanguageRow } from "./types";
+
+export const languages: LanguageRow[] = [
+	{
+		id: "javascript",
+		name: "JavaScript",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
+		dockerImage: "node:20-alpine",
+		fileExtension: ".js",
+		monacoLanguage: "javascript",
+	},
+	{
+		id: "typescript",
+		name: "TypeScript",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
+		dockerImage: "node:20-alpine",
+		fileExtension: ".ts",
+		monacoLanguage: "typescript",
+	},
+	{
+		id: "go",
+		name: "Go",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original.svg",
+		dockerImage: "golang:1.22-alpine",
+		fileExtension: ".go",
+		monacoLanguage: "go",
+	},
+	{
+		id: "python",
+		name: "Python",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+		dockerImage: "python:3.12-alpine",
+		fileExtension: ".py",
+		monacoLanguage: "python",
+	},
+	{
+		id: "c",
+		name: "C",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/c/c-original.svg",
+		dockerImage: "gcc:14",
+		fileExtension: ".c",
+		monacoLanguage: "c",
+	},
+	{
+		id: "cpp",
+		name: "C++",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg",
+		dockerImage: "gcc:14",
+		fileExtension: ".cpp",
+		monacoLanguage: "cpp",
+	},
+	{
+		id: "react",
+		name: "React",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+		dockerImage: "ctl-playground:latest",
+		fileExtension: ".tsx",
+		monacoLanguage: "typescript",
+	},
+	{
+		id: "vue",
+		name: "Vue",
+		icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg",
+		dockerImage: "ctl-playground:latest",
+		fileExtension: ".vue",
+		monacoLanguage: "vue",
+	},
+];
